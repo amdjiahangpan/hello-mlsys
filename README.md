@@ -64,7 +64,7 @@ hello-mlsys/
 | **第 2 篇：与 AI 一起设计** | | |
 | [第 9.1 章 端侧部署助手](./docs/part2-ai-design/chapter9-1/index.md) | 资源受限场景下的模型、精度、上下文与 KV 配置选型 | 🚧 |
 | [第 9.2 章 单机服务满足 SLA](./docs/part2-ai-design/chapter9-2/index.md) | 单卡容量规划：显存上界与排队上界、实测拐点与留出验证 | 🚧 |
-| [第 9.3 章 负载启发的推理集群设计](./docs/part2-ai-design/chapter9-3/index.md) | 容量、拓扑、成本、能耗与容错的集群设计：先模拟，再在资源允许范围内验证组件或子集 | 🚧 |
+| [第 9.3 章 负载启发的推理集群设计](./docs/part2-ai-design/chapter9-3/index.md) | 冻结的 deep-research 轨迹上以总墙钟最短为目标：32B/7B 两档模型协作与多种并行策略，先模拟筛选配置，再在 W7900D 48 G 多卡集群实测 | 🚧 |
 | **第 3 篇：选修与案例库** | | |
 | [选修与案例库](./docs/part3-electives/index.md) | 优先选修实验与扩展案例卡 | 🚧 |
 | **附录** | | |
