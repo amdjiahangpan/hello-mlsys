@@ -88,6 +88,12 @@ AI* = Peak FLOPS / Peak Bandwidth
 
 即：GEMM 要到 AI≈305 以上才 compute-bound；Element-wise 算子通常 AI≈1–2，对着 ≈76 的向量拐点永远是带宽受限。**选对峰值是判定的一部分**，用错峰值（比如拿矩阵峰值去判 Norm）会得到错误结论。
 
+把两条屋顶与本章用到的算子画在同一张图上（空心点 = nominal 下界预测，实心点 = 9070 XT 实测，§1.4 上卡锚定）：
+
+![Roofline：9070 XT 双屋顶与算子锚点](./images/fig1-roofline.png)
+
+读图：三个实心实测点全部落在对应屋顶之下（下界语义的实证）——matmul 4096³ 到达矩阵屋顶的 ≈67%（GEMM kernel 效率），LayerNorm 只跑到标称带宽的 ≈48%（小 kernel 未饱和），两个 attention 口径都远低于屋顶（fused 与 naive 的差距见 §1.4）。注意 attention 实心点的 AI（fused 256 / naive 85）与 §1.2 的 GQA 口径（AI≈343/93）不同：实测算子按 MHA 16/16 等头口径计数，两者同量级、同侧（拐点附近）。
+
 ### 标称（η=1）预测的含义：下界，不是预言
 
 本章的模拟器全部运行在**标称参数**下（η=1、带宽取标称值）。这决定了如何阅读它的输出：
@@ -268,6 +274,10 @@ t_step = Σ_c t_c + T_fixed                             （T_fixed：launch 开�
 
 decode 上限吞吐 ∝ 1/P：**同一张卡上，decode 吞吐与参数量成反比**——这是屋顶线层面的"为什么小模型在消费级卡上 decode 快"。
 
+![模型缩放：decode B=1 单步时间与参数量（9070 XT）](./images/fig4-scaling.png)
+
+三个模型的实测点（红钻）全部落在 2P/BW 下界线之上，但彼此间距远扁于下界线：实测 4B/0.6B = 39.3/29.3 = 1.34×，而权重字节比是 8.0/1.19 = 6.7×。eager 协议下 decode 单步 wall 由 kernel 数（层数：36/28 = 1.29×）与每 kernel CPU dispatch（T_launch）决定，GPU 饥饿（§1.4 上卡锚定诊断）——"模型放大 k 倍 → step 变慢 k 倍"是**去掉 launch 开销后的 GPU 侧关系**，本图实测点恰好把它暴露出来。
+
 ### 算例 B：batching 曲线——成本被 KV 扫描接管
 
 0.6B，ctx=1024，9070 XT，标称。组件时间：GEMM t_mem ≈ 1.86–1.91 ms（t_comp = 6–98 μs，始终远小于 t_mem）；KV 遍历 t = 0.18 / 0.73 / 2.94 ms；Element-wise 忽略。step = 组件 sum：
@@ -284,6 +294,10 @@ decode 上限吞吐 ∝ 1/P：**同一张卡上，decode 吞吐与参数量成�
 2. **每请求吞吐单调下降（480→206）**：ctx=1024 不算短，KV 扫描（AI 与 B 无关）随 B 线性增长；B=16 时 KV 字节（1.88 GB）已超过权重字节（1.19 GB），成为 step 的主要成本；
 3. **stage 级"AI≈B"在这里会误导**：把整个 decode step 的 AI 写成 ≈B、得出"B=16 仍远低于 305，所以整体还是 memory-bound"，无法解释每请求吞吐为何塌掉——必须把 GEMM 与 Attention 拆开，成本结构才可见。这正是 per-component 输出（而非 stage 级一个 max）的教学理由。
 
+![Batching 曲线：预测（nominal 下界）vs 实测（9070 XT，Qwen3-0.6B，ctx=1024）](./images/fig2-batching.png)
+
+实测（红钻/实心点）验证了表的**形状**读数：聚合吞吐随 B 上升（34→136→541 tok/s）、每请求吞吐单调下降（34.1→33.8 tok/s）。但实测 t_step 近乎平坦（29.3→29.6 ms）：eager 协议下 T_launch 主导单步 wall，表内预测的 "B=16 时 KV 扫描接管"（2.1→4.9 ms）被压缩进 GPU 侧 12–13 ms 的时间尺度里，压不过 T_launch 地板（归因与诊断见 §1.4 上卡锚定）。GPU 侧趋势未被推翻，只是在本协议下不可见。
+
 ### 算例 C：prefill S 曲线与 phase 不对称
 
 0.6B，b=1，9070 XT，标称。GEMM 用 P_linear≈440M；激活流量按**未融合 kernel** 口径计数（约 0.8 MB/token），S\* 会随融合口径在 300–450 之间移动——口径冻结后该移动才成为可解释的校准项：
@@ -298,6 +312,10 @@ decode 上限吞吐 ∝ 1/P：**同一张卡上，decode 吞吐与参数量成�
 - **phase 不对称**：同一个 0.6B，decode（B∈{1,4,16}）全 memory-bound，prefill S≥512 全 compute-bound。prefill 与 decode 是硬件利用率的两种不同 regime——"PD 分离"（分离 prefill/decode，第 9 章）的屋顶线动机在此；
 - 量级换算：prefill S=512 ≈ 2.7 ms（η=1 下界）；取 η≈0.4（参考课程推理典型范围 0.35–0.5）则 ≈6–7 ms，prefill 速率 ≈ 70–100 tok/s（标称估计，测前记录）。
 
+![Prefill 单步时间：S 曲线与 regime 分界（Qwen3-0.6B，b=1）](./images/fig3-prefill.png)
+
+实测点（红钻）坐落在 ≈30 ms 的 launch 地板上（与 decode 同源：eager 全模型 forward ≈1591 kernels/step、CPU dispatch ≈29 ms，§1.4 诊断），S=128 与"1.5 ms 下界"并不重合——短 prefill 贴着权重扫描下界这一 regime 结构在 **GPU 侧增量**上依然成立：S=128→2048 实测 30.1→52.6 ms（增量 22.4 ms）≈ η=1 下界增量（≈12.5 ms）的 1.8×，即 GPU 侧 ~1.8× 下界，量级与 kernel 效率 η + 口径差一致（regime 分界 S\*≈300–450 在增量上不变；归因见 §1.4 上卡锚定）。
+
 ### 预测留痕
 
 本章产生的每个预测（以上全部算例 + §1.4 模拟器实验的全部点）按第 0 章 §0.5 底稿模板记录：
@@ -309,11 +327,11 @@ stored_at: <ISO 时间戳，必须先于第 2 章测量开始>
 metrics: { 每组件 FLOPs/Bytes/AI/判定/t_c, t_step, 吞吐上限, ... }
 ```
 
-本章是 paper-only（无真机），但**留痕必须先于测量**：第 2 章同配置上真机时，按 config_id 查回这条记录得到预测值。先看了测量值再拟合只算回拟合，不算验证（§0.3 纪律）。
+本章预测以 nominal 为基准。**留痕必须先于测量**：§1.4 的上卡锚定按 config_id 对照实测（先记录后测量，同一纪律）；第 2 章同配置上真机做 η 校准时，按 config_id 查回这些记录得到预测值。先看了测量值再拟合只算回拟合，不算验证（§0.3 纪律）。
 
 ## 1.4 模拟器实验：预测典型算子的瓶颈与时间
 
-本章全部实验在模拟器上完成（nominal 参数，无真机 Profile——真机验证与校准自第 2 章开始）。实验分两个任务：**任务 1** 用 step 级宏分解覆盖 Qwen3 三个规模的 prefill/decode 配置（§1.2/§1.3 公式的执行版）；**任务 2** 用三个 primitive 算子建立"直觉 vs 判定"的校准练习。
+本章主体实验在模拟器上完成（nominal 参数；真机 η 拟合与 Profile 自第 2 章开始）。实验分两个任务：**任务 1** 用 step 级宏分解覆盖 Qwen3 三个规模的 prefill/decode 配置（§1.2/§1.3 公式的执行版）；**任务 2** 用三个 primitive 算子建立"直觉 vs 判定"的校准练习。此外，**上卡锚定**一节在 9070 XT 上完成一组实测：不拟合 η，只验证 nominal 预测是"下界"（实测 ≥ 预测）、给出 η 与口径差距的量级，并为本章配图提供实测点。
 
 ### 实验设置
 
@@ -363,6 +381,44 @@ step 级再输出 t_step（= Σ t_ms + T_fixed 口径）与整体 FLOPs/Bytes/AI
 
 **decode GEMM B=1 是第二个直觉校准算子**：它每 step 的 FLOPs 就是模型的总 FLOP 计数（0.6B 上 1.19 GFLOP/step），直觉上"每 step 都在做全部乘法"像 compute-bound；实际 AI≈1 ≪ 305，纯 memory-bound，被 1.86 ms 权重扫描钉死。两个校准算子互为镜像——decode GEMM：FLOPs 不小、AI 很小；naive attention：FLOPs 不小、访存被 S² 项撑爆。直觉错处的共同点：**数了 FLOPs，没数"这些 FLOPs 复用了多少字节"**。
 
+### 上卡锚定（9070 XT 实测锚点）
+
+**目的**（与第 2 章校准的区别）：不拟合 η（校准集/留出集协议属于第 2 章）。本节做三件事：① 验证 nominal 预测是**下界**（逐点检查实测 ≥ 预测）；② 量化差距的量级与归因（kernel 效率 / 软件开销 / 口径差 / launch 开销）；③ 为本章 4 张配图提供实测点。
+
+**环境**：宿主机 ROCm（本机唯一 docker 镜像 python:3.12-slim 无 ROCm 运行时，故用宿主 torch）——python 3.13.11 / torch 2.16.0.dev+rocm10.1 / transformers 5.16.1；AMD Radeon RX 9070 XT 15.9 GiB（本机 device 1，`HIP_VISIBLE_DEVICES=1` 重映射为 0）；模型 `/mnt/public/models`（Qwen3-0.6B/1.7B/4B），BF16，`attn_implementation="sdpa"`。
+
+**SDPA 口径**：ROCm fused kernel 要求等头数 dense 输入；Qwen3 是 GQA 16q/8kv → transformers 先 `repeat_kv` 把 K/V 展开到 16 头再走 MHA fused 路径（backend 探测：展开后 flash/efficient/math 均可用、cudnn 不可用；未展开的 GQA dense 输入直接被 fused 拒绝）。repeat_kv 展开的每步额外 HBM 流量（decode B=1，ctx=1024）：读原 KV ≈117 MB + 写展开 KV ≈235 MB ≈ 352 MB/step ≈ 0.55 ms（名义 640 GB/s）——名义 FA 口径预测**未计入**的口径差，下表归因项之一。
+
+**协议**（Ch0 §0.3）：ops/decode warmup 10 + 50 采样 × 3 轮；prefill warmup 3 + 10 × 3；seed 42；`torch.cuda.Event` 逐步计时 + 每步 sync；decode 闭环（每 32 步用同 seed 输入重新 prefill 重置 cache，采样窗口 [ctx+1, ctx+32]）；报中位数，3 轮 = 方差（消费级卡 boost 时钟：run 内 <7%，run 间 ~5–30%）。脚本 `bench_ops.py` / `bench_qwen.py` / `diag_launch.py`，产物 `results/ops_9070xt.json` / `qwen_9070xt.json` / `launch_diag_9070xt.json`。
+
+**预测 vs 实测**（预测 = §1.3/任务 2 冻结的 nominal 值，T_fixed=0；**14 点全部实测 ≥ 预测，下界语义成立**）：
+
+| config_id | 预测 (ms) | 实测 (ms) | 比值 | 归因 |
+| ---- | ---- | ---- | ---- | ---- |
+| matmul 4096³ BF16（op） | 0.70（compute） | 1.06 | 1.5× | GEMM kernel 效率：130/195 TFLOPS，η_gemm≈0.67 |
+| LayerNorm S=2048（op） | 0.013（memory） | 0.027 | 2.1× | 小 kernel 未饱和带宽：307/640 GB/s = 48% |
+| attention fused 28L S=512（op） | 0.31（FA 口径） | 1.63 | 5.3× | MHA 16/16 口径 + kernel 效率 + launch 开销 |
+| attention MATH 28L S=512（op） | 1.0（naive 口径） | 15.31 | 15.3× | 软件墙：S×S 物化 + softmax 多趟 + bmm 低效（全模型 3.9 TFLOPS） |
+| fused / MATH | — | 9.4× | — | FA vs naive 的本地锚点（CMU A100 公开值 5.7×） |
+| decode-B1-ctx1024 · 0.6B | 2.0 | 29.30 | 14.7× | T_launch 主导（下方诊断）；GPU 侧 12.3 vs 2.0 ms |
+| decode-B4 · 0.6B | 2.6 | 29.43 | 11.3× | 同上：t_step 对 B 近平坦 |
+| decode-B16 · 0.6B | 4.9 | 29.58 | 6.0× | 同上 |
+| decode-B1 · 1.7B | 5.3 | 29.74 | 5.6× | t ∝ 层数（28L），不 ∝ 权重字节 |
+| decode-B1 · 4B | 12.5 | 39.35 | 3.1× | t ∝ 层数（36L）：39.3/29.3 = 1.34 ≈ 36/28 |
+| prefill-S128 · 0.6B | 1.5 | 30.13 | 20.1× | ≈30 ms launch 地板 + S 相关增量 |
+| prefill-S512 · 0.6B | 2.7 | 32.01 | 11.9× | 同上 |
+| prefill-S2048 · 0.6B | 14 | 52.57 | 3.8× | 增量 22.4 ms ≈ 1.8× η=1 增量（12.5 ms） |
+| prefill-S512 · 1.7B | ≈7.8（补记） | 37.46 | 4.8× | 同上 |
+| prefill-S512 · 4B | ≈18.5（补记） | 62.44 | 3.4× | 同上 |
+
+（"补记"行不在 18 个冻结配置点内，按 §1.3 同一公式（GEMM max + attention FA 口径 + T_fixed=0.1 ms）即得，属补记预测——留痕纪律的例外项，显式标注。）
+
+算例 A 的 "2.0–2.3 ms（含未校准 T_launch）" 现在可以具体化：T_launch（eager）≈ 28.9 ms，比当时假设的舍入项大一个数量级。
+
+**为什么 decode 是 29 ms：T_launch 诊断**（`diag_launch.py`，0.6B B=1）：实测 decode t_step 对 B 与参数量都近乎平坦（29.30/29.43/29.58；1.7B 29.74；4B 39.35）——若 GPU 侧（权重扫描）主导，4B 应是 0.6B 的 6.7×、B=16 应是 B=1 的 2.4×，均不成立。三个测量互相印证：每步 sync 28.9 ms ≈ burst（仅一次 sync）28.7 ms ≈ 纯 CPU enqueue 29.5 ms；`torch.profiler` 数出**单步 1591 个 CUDA kernel**，GPU self 时间合计仅 12.3 ms（≈wall 的 42%）。归因：每 kernel CPU dispatch ≈18.6 μs vs GPU 执行 ≈7.7 μs——eager 全模型步是 **CPU kernel 发射受限（GPU 饥饿）**，实测 wall ≈ CPU 发射速率，而不是 GPU 屋顶线。这就是 §1.1 T_fixed 项在全模型 eager 步上的实现：~19 μs × 1591 kernels ≈ 29 ms，不是零头。GPU 侧 12.3 ms 本身也 ≈6× nominal 2.0 ms 下界（repeat_kv 口径差 ≈0.55 ms + kernel 效率 + 小 kernel 效率）。推理框架用 CUDA Graphs / compile 消除这部分开销（第 2 章及以后）；本锚点只记录 "eager 协议下 T_launch 主导"，不改 GPU 侧屋顶线结论——也提示第 2 章的 η 校准应针对**去除 T_launch 后的 GPU 侧时间**（或显式建模 T_launch）。
+
+**未覆盖**：W7900D（参数待确认，TODO 嘉航）；18 个模拟器配置点仍 paper-only（"手算对模拟器"待执行）；CUDA Graphs / torch.compile 口径（第 2 章起）。
+
 ### 模拟器接口与产物
 
 按第 0 章 §0.4 六元组契约调用（calibration 显式传参，不得隐式）：
@@ -385,14 +441,16 @@ predict_decode_step(batch_size=B, context_lengths=[1024]*B, model_spec, device, 
 
 重跑第 0 章 §0.5.3 的纸面演练场景（0.6B decode B=1 ctx=1024），两列对照：
 
-| 指标 | 手算（§0.5.3 / §1.3） | 模拟器 nominal（待执行，填入） |
-| ---- | ---- | ---- |
-| t_weight (ms) | 1.85 | <待执行> |
-| t_attn_kv (ms) | 0.18 | <待执行> |
-| t_step (ms) | 2.0–2.3（含未校准 T_fixed） | <待执行> |
-| 吞吐上限 (tok/s) | 430–500 | <待执行> |
+| 指标 | 手算（§0.5.3 / §1.3） | 模拟器 nominal（待执行，填入） | 9070 XT 实测（eager，§1.4） |
+| ---- | ---- | ---- | ---- |
+| t_weight (ms) | 1.85 | <待执行> | 不拆分（GPU 侧 12.3 ms 含全部 kernel） |
+| t_attn_kv (ms) | 0.18 | <待执行> | 不拆分 |
+| t_step (ms) | 2.0–2.3（含未校准 T_fixed） | <待执行> | 29.30（T_launch 主导） |
+| 吞吐上限 (tok/s) | 430–500 | <待执行> | 34 per-request / 541 聚合（B=16） |
 
 两侧同为 nominal，**应一致到计数口径级**：若差值非零，是模拟器的计数/公式 bug（哪个组件的 FLOPs 或 Bytes 公式写错），按"归因 → 修正 → 重跑"处理，不得标注为测量误差。这是全书第一条预测对预测校准记录（模拟器校准到手算锚点）；第 2 章起，两者一起被校准到真机。
+
+**实测列不参与"应一致"检查**：eager 协议的 T_launch（≈29 ms）不在手算或模拟器的任何口径内，它的作用是下界检查（29.30 ≥ 2.3，成立）与差距量级（逐项归因见上卡锚定表）。模拟器"待执行"填入后，手算/模拟器两列仍须一致到计数口径级；第 2 章的真机校准对象是**去除 T_launch 后的 GPU 侧时间**（12.3 ms，不是 29.30 ms）——用 29.30 去拟合 η 会把 launch 开销误标为 kernel 效率。
 
 ### 验收清单
 
@@ -403,19 +461,21 @@ predict_decode_step(batch_size=B, context_lengths=[1024]*B, model_spec, device, 
 3. 全部组件判定与 §1.2 手算一致；不一致项已归因并修正；
 4. 算例 B/C 的表格可由模拟器复现（同配置点输出与表内数值一致到舍入口径）；
 5. 全部预测点有 prediction_id + stored_at，且 stored_at 先于第 2 章任何测量；
-6. W7900D 行全部标注"待确认参数"，未混入 T1 结论。
+6. W7900D 行全部标注"待确认参数"，未混入 T1 结论；
+7. 上卡锚定：14 个实测点（4 op + 10 模型配置）全部满足实测 ≥ 预测（下界成立），每个比值有归因（kernel 效率 / 软件墙 / 口径差 / launch 开销）；T_launch 诊断（`diag_launch.py`）量化每 kernel dispatch 量级（~19 μs × 1591 kernels）；
+8. 4 张中文配图（fig1–fig4）的实测点与 `results/*.json` 完全一致，`figs/make_figs.py` 可重跑再生成。
 
 实验产物与代码目录：`code/part1-modeling/chapter1/`。
 
 ## 实验设计
 
 - **模拟器实验**：Qwen3-0.6B / 1.7B / 4B × (prefill S∈{128, 512, 2048}, decode B∈{1, 4, 16}, ctx=1024)，nominal 参数。输出：per-component FLOPs/Bytes/AI/瓶颈判定、Roofline 拐点图（9070 XT 两线 + W7900D 待确认线）、step 时间与吞吐上限的量级（含 decode GEMM 与 naive attention 两个直觉校准算子）。
-- **真机实验**：无。本章全部预测基于标称参数完成，真机验证与 Profile 自第 2 章开始。
+- **真机实验：上卡锚定**（9070 XT，`bench_ops.py` + `bench_qwen.py`，§1.4"上卡锚定"）：primitive 算子（matmul / LayerNorm / attention 双口径）+ Qwen3 三模型 decode（B∈{1,4,16}/1/1，ctx=1024）与 prefill（S∈{128,512,2048}/512/512）锚点。目的：验证 nominal 预测是下界（实测 ≥ 预测）、量化 η 与口径差距（含 GQA repeat_kv 展开项）、为配图提供实测点。**不拟合 η**——η 校准确认属于第 2 章（校准集/留出集协议）。
 - **闭环与交付**：
   - 预测：每个配置点的瓶颈判定（per-component）、预测 step 时间 / 吞吐上限、选点理由，全部带 prediction_id + stored_at；
-  - 实测：无（本章无真机）；
-  - 校准：无（第 2 章执行）。本章唯一校准记录 = 手算 vs 模拟器一致性检查（§1.4"手算对模拟器"）；
-  - 决策：场景定义（Qwen3 × AMD T1/T4）+ 预测曲线（batching 曲线、prefill S 曲线）+ 拐点图 + 瓶颈判定说明（per-component，含两个直觉陷阱：decode GEMM B=1 与 naive attention）。
+  - 实测：9070 XT 上卡锚定（`results/ops_9070xt.json`、`results/qwen_9070xt.json`，协议与 config_id 见 §1.4；W7900D 未覆盖——参数待确认）；
+  - 校准：η 拟合无（第 2 章执行）。本章校准记录 = ① 手算 vs 模拟器一致性检查（§1.4"手算对模拟器"）；② 实测/预测比值的逐项归因记录（§1.4 上卡锚定表：kernel 效率 / 软件开销 / 口径差 / launch 开销）；
+  - 决策：场景定义（Qwen3 × AMD T1/T4）+ 预测曲线（batching 曲线、prefill S 曲线）+ Roofline 图（含实测锚点）+ 瓶颈判定说明（per-component，含两个直觉陷阱：decode GEMM B=1 与 naive attention）。
 
 ## 本章小结
 
@@ -425,7 +485,8 @@ predict_decode_step(batch_size=B, context_lengths=[1024]*B, model_spec, device, 
 - **nominal（η=1）是下界不是预言**：解析估计的可靠性排序——瓶颈判定（binding constraint）> 交叉点位置（crossover）> 敏感度排序 > 单点数值；单点时间典型偏离真实 1.5–2×，§2 用真机拟合 η。
 - **phase 不对称**：同一模型 decode 全 memory-bound、prefill S≥512 全 compute-bound——PD 分离（第 9 章）的屋顶线动机；batching 在 ctx 较长时成本被 KV 扫描接管（算例 B 每请求吞吐 480→206 tok/s）。
 - **两个直觉陷阱**：decode GEMM B=1 数着全部 FLOPs 却 AI≈1（纯 memory-bound）；naive attention S² FLOPs 不小却被 S² 中间矩阵访存推回 memory 斜坡。共同错误：数了 FLOPs，没数字节复用。
-- **交付**：`code/part1-modeling/chapter1/` 下 18 个配置点的 per-component 预测（含 prediction_id + stored_at，先于第 2 章测量）+ 两张 Roofline 拐点图 + 手算 vs 模拟器一致性记录。
+- **上卡锚定（9070 XT，eager 协议）**：14 个实测点全部实测 ≥ 预测（下界语义成立）；matmul 4096³ 达矩阵峰值 67%（η_gemm 的量级）、LayerNorm 为名义带宽 48%、fused/naive attention = 9.4×（CMU A100 公开 5.7×）；全模型 decode 单步 wall ≈ T_launch（1591 kernels × ~19 μs CPU dispatch，GPU 饥饿至 ~42% busy）——T_fixed 不是零头，是 CUDA Graphs / compile 的直接动机（第 2 章起），且第 2 章 η 校准应对去除 T_launch 后的 GPU 侧时间。
+- **交付**：`code/part1-modeling/chapter1/` 下 18 个配置点的 per-component 预测（含 prediction_id + stored_at，先于第 2 章测量）+ 两张 Roofline 拐点图 + 手算 vs 模拟器一致性记录 + 上卡锚定实测（14 点，`results/*.json`，协议 Ch0 §0.3）+ 4 张中文配图（`figs/make_figs.py`）+ launch 诊断（`diag_launch.py`）。
 
 ## 延伸阅读
 

@@ -1,0 +1,140 @@
+{
+  "environment": {
+    "python": "3.13.11",
+    "torch": "2.16.0.dev20261019+rocm10.1",
+    "rocm": "7.16.26385",
+    "os": "Linux 6.14.0-37-generic",
+    "gpu_name": "AMD Radeon RX 9070 XT",
+    "gpu_vram_gib": 15.9,
+    "driver": "Driver version: 6.16.13",
+    "clocks": "",
+    "sdpa_backends": {
+      "mha8_backends": {
+        "flash": "ok",
+        "efficient": "ok",
+        "cudnn": "unavailable: No available kernel. Aborting execution.",
+        "math": "ok"
+      },
+      "gqa16-8_backends": {
+        "flash": "ok",
+        "efficient": "ok",
+        "cudnn": "unavailable: No available kernel. Aborting execution.",
+        "math": "ok"
+      }
+    }
+  },
+  "protocol": {
+    "warmup": 10,
+    "samples": 50,
+    "rounds": 3
+  },
+  "ops": {
+    "matmul_4096": {
+      "shape": "BF16 4096x4096x4096",
+      "flops": 137438953472.0,
+      "bytes": 100663296,
+      "ai": 1365.3333333333333,
+      "rounds": [
+        {
+          "median_ms": 1.0552259683609009,
+          "min_ms": 1.0406370162963867,
+          "p90_ms": 1.0915459394454956
+        },
+        {
+          "median_ms": 1.0536659955978394,
+          "min_ms": 1.0373859405517578,
+          "p90_ms": 1.07231605052948
+        },
+        {
+          "median_ms": 1.058635950088501,
+          "min_ms": 1.0340960025787354,
+          "p90_ms": 1.0829060077667236
+        }
+      ],
+      "median_ms": 1.0552259683609009,
+      "gflops": 130245.99241571555
+    },
+    "layernorm_2048x1024": {
+      "shape": "BF16 S=2048 d=1024",
+      "flops_approx": 8388608,
+      "bytes": 8388608,
+      "rounds": [
+        {
+          "median_ms": 0.027400000020861626,
+          "min_ms": 0.027160000056028366,
+          "p90_ms": 0.027720000594854355
+        },
+        {
+          "median_ms": 0.02727999910712242,
+          "min_ms": 0.027160000056028366,
+          "p90_ms": 0.02768000029027462
+        },
+        {
+          "median_ms": 0.027319999411702156,
+          "min_ms": 0.02715899981558323,
+          "p90_ms": 0.02768000029027462
+        }
+      ],
+      "median_ms": 0.027319999411702156,
+      "gbps": 307.05007981833455
+    },
+    "attention_fused_mha16_s512": {
+      "shape": "BF16 MHA 16/16 heads, S=512, d=128, 单层",
+      "note": "默认 SDPA → ROCm 快速 fused kernel（tiling+重计算口径，FLOPs +13% 未计入本表 FLOPs 列）",
+      "flops_per_layer": 2147483648,
+      "bytes_per_layer": 8388608,
+      "ai": 256.0,
+      "layers": 28,
+      "flops_model": 60129542144,
+      "bytes_model": 234881024,
+      "rounds": [
+        {
+          "median_ms": 0.05900000035762787,
+          "min_ms": 0.04111899808049202,
+          "p90_ms": 0.05948000028729439
+        },
+        {
+          "median_ms": 0.058038998395204544,
+          "min_ms": 0.04047900065779686,
+          "p90_ms": 0.05852000042796135
+        },
+        {
+          "median_ms": 0.05819999799132347,
+          "min_ms": 0.04092000052332878,
+          "p90_ms": 0.05908000096678734
+        }
+      ],
+      "median_ms": 0.05819999799132347,
+      "model_median_ms": 1.6295999437570572
+    },
+    "attention_math_mha16_s512": {
+      "shape": "BF16 MHA 16/16 heads, S=512, d=128, 单层",
+      "note": "强制 MATH 后端：物化 S×S 进 HBM（naive 口径，含 softmax 多趟读写的软件开销）",
+      "flops_per_layer": 2147483648,
+      "bytes_per_layer": 25165824,
+      "ai": 85.33333333333333,
+      "layers": 28,
+      "flops_model": 60129542144,
+      "bytes_model": 704643072,
+      "rounds": [
+        {
+          "median_ms": 0.5862579941749573,
+          "min_ms": 0.5367879867553711,
+          "p90_ms": 0.5977270007133484
+        },
+        {
+          "median_ms": 0.5437279939651489,
+          "min_ms": 0.5339980125427246,
+          "p90_ms": 0.5562679767608643
+        },
+        {
+          "median_ms": 0.5469279885292053,
+          "min_ms": 0.5145080089569092,
+          "p90_ms": 0.5670080184936523
+        }
+      ],
+      "median_ms": 0.5469279885292053,
+      "model_median_ms": 15.313983678817749
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "environment": {
+    "torch": "2.16.0.dev20261019+rocm10.1",
+    "rocm": "7.16.26385",
+    "gpu": "AMD Radeon RX 9070 XT"
+  },
+  "config": {
+    "model": "/mnt/public/models/Qwen3-0.6B",
+    "batch": 1,
+    "ctx": 1024,
+    "seed": 42,
+    "steps": 32
+  },
+  "measurements": {
+    "A_per_step_sync_median_ms": 28.92,
+    "B_burst_one_sync_ms": 28.67,
+    "C_cpu_enqueue_ms": 29.54,
+    "d_kernels_per_step": 1591,
+    "d_gpu_self_ms": 12.29,
+    "derived_cpu_dispatch_per_kernel_us": 18.6,
+    "derived_gpu_self_per_kernel_us": 7.7,
+    "derived_gpu_busy_fraction_of_A": 0.43
+  },
+  "top_kernels": [
+    {
+      "name": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAB_SCD_SAV_UserArgs_MT128x16x128_MI16x16x1_SN_L",
+      "calls": 56,
+      "cuda_ms": 1.438
+    },
+    {
+      "name": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAB_SCD_SAV_UserArgs_MT16x64x128_MI16x16x1_SN_LD",
+      "calls": 56,
+      "cuda_ms": 0.956
+    },
+    {
+      "name": "void at::native::vectorized_elementwise_kernel<4, at::native::converting_copy_ke",
+      "calls": 113,
+      "cuda_ms": 0.944
+    },
+    {
+      "name": "flyc_attn_fwd.kd",
+      "calls": 28,
+      "cuda_ms": 0.853
+    },
+    {
+      "name": "void at::native::elementwise_kernel_manual_unroll<128, 8, at::native::gpu_kernel",
+      "calls": 168,
+      "cuda_ms": 0.745
+    },
+    {
+      "name": "void at::native::(anonymous namespace)::CatArrayBatchedCopy_contig<at::native::(",
+      "calls": 56,
+      "cuda_ms": 0.703
+    },
+    {
+      "name": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAB_SCD_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_L",
+      "calls": 28,
+      "cuda_ms": 0.696
+    },
+    {
+      "name": "void at::native::vectorized_elementwise_kernel<4, at::native::converting_copy_ke",
+      "calls": 115,
+      "cuda_ms": 0.653
+    },
+    {
+      "name": "void at::native::elementwise_kernel_manual_unroll<128, 4, at::native::gpu_kernel",
+      "calls": 113,
+      "cuda_ms": 0.632
+    },
+    {
+      "name": "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous namespa",
+      "calls": 113,
+      "cuda_ms": 0.59
+    }
+  ]
+}

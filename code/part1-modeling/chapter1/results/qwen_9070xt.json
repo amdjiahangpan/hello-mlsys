@@ -1,0 +1,196 @@
+{
+  "environment": {
+    "python": "3.13.11",
+    "torch": "2.16.0.dev20261019+rocm10.1",
+    "rocm": "7.16.26385",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "gpu_vram_gib": 15.9,
+    "attn_implementation": "sdpa (ROCm fused kernel; GQA→repeat_kv 展开 + MHA fused)",
+    "note": "decode 每步含 launch 开销 T_fixed 与 repeat_kv 展开开销；与 nominal 下界对比的差值归因见 §1.4 上卡锚定"
+  },
+  "protocol": {
+    "decode": {
+      "warmup": 10,
+      "samples": 50,
+      "rounds": 3,
+      "timing": "per-step cuda event + sync"
+    },
+    "prefill": {
+      "warmup": 3,
+      "samples": 10,
+      "rounds": 3,
+      "timing": "per-forward cuda event + sync"
+    }
+  },
+  "models": {
+    "Qwen3-0.6B": {
+      "config": {
+        "layers": 28,
+        "hidden": 1024,
+        "intermediate": 3072,
+        "n_q_heads": 16,
+        "n_kv_heads": 8,
+        "head_dim": 128,
+        "tied_embeddings": true
+      },
+      "load_seconds": 1.5,
+      "decode": [
+        {
+          "config_id": "decode-B1-ctx1024",
+          "batch": 1,
+          "ctx": 1024,
+          "rounds_ms": [
+            29.235319137573242,
+            29.29768180847168,
+            29.662134170532227
+          ],
+          "median_ms": 29.29768180847168,
+          "tok_s_per_request": 34.13239335921934,
+          "tok_s_aggregate": 34.13239335921934
+        },
+        {
+          "config_id": "decode-B4-ctx1024",
+          "batch": 4,
+          "ctx": 1024,
+          "rounds_ms": [
+            30.85826301574707,
+            29.430295944213867,
+            29.433807373046875
+          ],
+          "median_ms": 29.433807373046875,
+          "tok_s_per_request": 33.974537759451394,
+          "tok_s_aggregate": 135.89815103780558
+        },
+        {
+          "config_id": "decode-B16-ctx1024",
+          "batch": 16,
+          "ctx": 1024,
+          "rounds_ms": [
+            31.42544937133789,
+            29.580142974853516,
+            29.512304306030273
+          ],
+          "median_ms": 29.580142974853516,
+          "tok_s_per_request": 33.806462695265324,
+          "tok_s_aggregate": 540.9034031242452
+        }
+      ],
+      "prefill": [
+        {
+          "config_id": "prefill-S128-b1",
+          "seq_len": 128,
+          "rounds_ms": [
+            30.12701988220215,
+            29.083599090576172,
+            30.625452041625977
+          ],
+          "median_ms": 30.12701988220215,
+          "tok_s": 4.248677781622116
+        },
+        {
+          "config_id": "prefill-S512-b1",
+          "seq_len": 512,
+          "rounds_ms": [
+            32.16197967529297,
+            31.926631927490234,
+            32.008018493652344
+          ],
+          "median_ms": 32.008018493652344,
+          "tok_s": 15.995991757550911
+        },
+        {
+          "config_id": "prefill-S2048-b1",
+          "seq_len": 2048,
+          "rounds_ms": [
+            53.32493591308594,
+            52.56401443481445,
+            52.57191467285156
+          ],
+          "median_ms": 52.57191467285156,
+          "tok_s": 38.95616153119869
+        }
+      ]
+    },
+    "Qwen3-1.7B": {
+      "config": {
+        "layers": 28,
+        "hidden": 2048,
+        "intermediate": 6144,
+        "n_q_heads": 16,
+        "n_kv_heads": 8,
+        "head_dim": 128,
+        "tied_embeddings": true
+      },
+      "load_seconds": 48.4,
+      "decode": [
+        {
+          "config_id": "decode-B1-ctx1024",
+          "batch": 1,
+          "ctx": 1024,
+          "rounds_ms": [
+            31.686359405517578,
+            29.734989166259766,
+            29.73663902282715
+          ],
+          "median_ms": 29.73663902282715,
+          "tok_s_per_request": 33.62854824421671,
+          "tok_s_aggregate": 33.62854824421671
+        }
+      ],
+      "prefill": [
+        {
+          "config_id": "prefill-S512-b1",
+          "seq_len": 512,
+          "rounds_ms": [
+            37.51583480834961,
+            37.4643440246582,
+            37.314422607421875
+          ],
+          "median_ms": 37.4643440246582,
+          "tok_s": 13.666327633095962
+        }
+      ]
+    },
+    "Qwen3-4B": {
+      "config": {
+        "layers": 36,
+        "hidden": 2560,
+        "intermediate": 9728,
+        "n_q_heads": 32,
+        "n_kv_heads": 8,
+        "head_dim": 128,
+        "tied_embeddings": true
+      },
+      "load_seconds": 88.2,
+      "decode": [
+        {
+          "config_id": "decode-B1-ctx1024",
+          "batch": 1,
+          "ctx": 1024,
+          "rounds_ms": [
+            38.195255279541016,
+            39.34581756591797,
+            39.9827880859375
+          ],
+          "median_ms": 39.34581756591797,
+          "tok_s_per_request": 25.415661990620762,
+          "tok_s_aggregate": 25.415661990620762
+        }
+      ],
+      "prefill": [
+        {
+          "config_id": "prefill-S512-b1",
+          "seq_len": 512,
+          "rounds_ms": [
+            62.43528747558594,
+            62.760894775390625,
+            62.0115966796875
+          ],
+          "median_ms": 62.43528747558594,
+          "tok_s": 8.2004907913687
+        }
+      ]
+    }
+  },
+  "wall_seconds": 177.8
+}
