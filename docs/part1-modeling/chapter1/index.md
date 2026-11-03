@@ -20,42 +20,418 @@ description: "Hello MLSys · 第 1 章 模拟器估算、Roofline 与瓶颈 · R
 - 能用模拟器预测矩阵乘、LayerNorm、FlashAttention 在目标卡上的瓶颈类型与时间量级；
 - 能识别"看起来像 Compute-bound、实际受带宽限制"的算子，并解释直觉错在哪里。
 
-## 内容梗概
+## 1.1 Roofline 模型
 
-### Roofline 模型
+### 硬件的两条速度上限
 
-理解 Attainable FLOPS = min(Peak FLOPS, AI × Peak Bandwidth) 的含义与适用边界：两条"屋顶"给出理论上限，理论峰值是上限而不是当前 kernel 的实际上限。
+一块 GPU 同时受两条互不相干的速度上限约束：
 
-### 算术强度与瓶颈判定
+1. **计算上限**：每秒能执行多少 FLOP（Peak FLOPS，再乘以实际效率 η）；
+2. **访存上限**：每秒能在 HBM 与计算单元之间搬运多少字节（Peak Bandwidth）。
 
-计算算子的算术强度（AI），对照 ridge 点判断它落在 Compute-bound 还是 Memory-bound 区域。
+一个算子 step 的耗时由两条上限中**先被触及的那条**决定——这两类资源是**并行**工作的，不是串联的：
 
-### 计算时间量级估算
+```
+t_step = max( FLOPs / (Peak FLOPS × η) ,  Bytes / Peak Bandwidth ) + T_fixed
+         └────────── 计算项 ──────────┘  └──────── 访存项 ────────┘  └─ 固定开销（launch 等，本章未校准）
+```
 
-从工作量与硬件峰值估算执行时间的数量级，建立"离硬件极限还有多远"的直觉。
+**取 max 而不是 sum** 是最容易搞错的一点。把两项相加等于假设"先把数据搬完、再算"；但实际执行中数据是一边读一边被消费的：如果计算先读完，计算单元就空转等数据，step 时间由较慢的那条决定，较快的那条被"浪费"了。参考课程（mlsysbook）把同一件事表述为："a step takes at least as long as its compute time or its memory-transfer time, whichever is larger"。
+
+### 吞吐量视角：屋顶与拐点
+
+把上式改写为"给定算子最多能跑多少 FLOPS"（两边对时间取吞吐），就得到 Roofline 的经典形式：
+
+```
+Attainable FLOPS = min( Peak FLOPS ,  AI × Peak Bandwidth )
+```
+
+其中 AI（arithmetic intensity，算术强度，§1.2 定义）是算子每搬运 1 字节所执行的 FLOP 数。min 的两个参数就是两条"屋顶"：
+
+- AI 小时，访存先成为限制：可达成 FLOPS 随 AI 线性增长（屋顶的斜坡）；
+- AI 大时，计算天花板先被触及：可达成 FLOPS 封顶在 Peak FLOPS（屋顶的平顶）。
+
+两线交点即**拐点（ridge point / machine balance point）**：
+
+```
+AI* = Peak FLOPS / Peak Bandwidth
+```
+
+拐点左侧 memory-bound，右侧 compute-bound。同一硬件、同一个算子，仅仅因为 batch size 或序列长度不同，就可以在两条完全不同的区域之间移动：
+
+```
+        可达成 FLOPS
+              │
+    Peak ─────┤━━━━━━━━━━━━━━━━━━━  计算屋顶（AI ≥ AI*）
+              │        ╱
+              │       ╱
+              │      ╱      访存斜坡（AI < AI*）
+              │     ╱
+              │    ╱
+              │   ╱
+              │  ╱
+              │ ╱
+              └─────────────────────────  AI (FLOP/byte)
+              0            AI* = Peak/BW
+```
+
+参考课程的 ResNet-50/A100 例子（b=1，FP16）展示了"贴着拐点"的情形：AI≈146，A100 拐点≈153，访存项 0.028 ms 以微弱优势压过计算项 0.026 ms，两者都远小于 0.515 ms 的固定 dispatch 开销——"总时间大部分是开销，所以 batching 在这里收益巨大"。我们的主算例（decode B=1，AI≈1 vs AI*≈305）则远在拐点左侧，判定是稳健的，不依赖真实 kernel 的效率。两种位置（贴拐点 / 远离拐点）都要会读。
+
+### 9070 XT 的两个拐点
+
+注意：**Peak FLOPS 不是一个数**。算子走哪条计算管线（矩阵管线 / 向量管线）、用什么精度，决定了屋顶该用哪个峰值。9070 XT（T1，标称参数与来源见第 0 章 §0.2）至少有两个与本章相关的拐点：
+
+| 计算路径 | Peak | 带宽 | 拐点 AI* |
+| ---- | ---- | ---- | ---- |
+| BF16 矩阵管线（GEMM / 线性层） | 195 TFLOPS | 640 GB/s | ≈305 FLOP/byte |
+| FP32 向量管线（Element-wise / Norm 等） | 48.7 TFLOPS | 640 GB/s | ≈76 FLOP/byte |
+
+即：GEMM 要到 AI≈305 以上才 compute-bound；Element-wise 算子通常 AI≈1–2，对着 ≈76 的向量拐点永远是带宽受限。**选对峰值是判定的一部分**，用错峰值（比如拿矩阵峰值去判 Norm）会得到错误结论。
+
+### 标称（η=1）预测的含义：下界，不是预言
+
+本章的模拟器全部运行在**标称参数**下（η=1、带宽取标称值）。这决定了如何阅读它的输出：
+
+- `t = max(FLOPs/Peak, Bytes/BW)` 是**理论下界**：真实 kernel 不可能比它更快，只会更慢（η<1、launch 开销、调度气泡）；参考课程对同一结构有完全相同的表述——"both times use peak rates (efficiency η = 1 and full bandwidth), so they are lower bounds"；
+- η 是**校准对象**：第 2 章在校准集上拟合它（或等价修正系数），在留出集上检验泛化；本章不拟合，只声明；
+- 因此模拟器输出是**解析估计，不是测量**（证据级别 `simulated`，见第 0 章 §0.4）。它的价值不在于给出精确毫秒数，而在于把约束显式化：参考课程对解析模拟器的承诺是——"outputs are analytical estimates, not measurements"，"the most reliable conclusions are binding constraints, crossover points, and sensitivity rankings"（最可靠的结论是约束绑定关系、交叉点与敏感度排序）。本章的输出按这个标准验收：瓶颈判定、交叉点（B\*、S\*）、配置间的相对排序，而不是绝对时间。
+
+本章所有预测均标记 `calibration=nominal`。真实推理相对理想下界通常慢 1.5–2 倍（参考课程的实测范围），误差方向可预期（系统性偏大）——这正是第 2 章校准的入口。
+
+### 与第 0 章 Iron Law 的关系
+
+第 0 章 §0.1 的 Iron Law 是 **sum 形式**：`T ≈ D/BW + O/(R·η) + L`。它适用于**串联**的阶段（先搬数据、后计算，例如一次完整调用的端到端流程）。Roofline 是 **max 形式**：适用于**并行**的资源（单个 kernel 执行期间计算与访存同时进行）。两者不矛盾，模拟器按层次组合：
+
+```
+组件内部：  t_c = max(t_compute, t_memory)    （资源并行）
+组件之间：  t_step = Σ t_c + T_fixed          （kernel 按层序串联执行）
+```
+
+为什么"组件间必须相加"而不是再取一次 max，§1.3 用算例说明。
+
+### 适用边界
+
+Roofline 是**单算子模型**，用它时假设要显式声明：
+
+1. **单算子、无重叠**：假设该算子独占 GPU。真实系统中 kernel 可重叠、多 stream 并发，单算子 Roofline 只是 step 的一阶近似；
+2. **Bytes = HBM 流量**：cache（L1/LLC）命中会减少真实 HBM 流量。标称模拟器按"未融合、无缓存复用"口径计数（§1.2 冻结口径）；口径与真机的差距属于校准误差的一部分，不是模型错误；
+3. **峰值是上限，不是当前 kernel 的实际上限**：即便 compute-bound 的算子，实际也远低于峰值（η 常远低于 1）。Roofline 回答"瓶颈在哪里"，不回答"还有多少优化空间"；
+4. **模型级判定必须由组件级判定合成**：不能把整个模型当成一个算子套 Roofline——不同组件绑定的资源不同，模型级 t_step 是组件级结果的合成（§1.3）。
+
+### 口径提示：memory-bound ≠ 显存不足
+
+Roofline 文献把拐点左侧的区域叫 "memory-bound"。本书沿用该词：**memory-bound 指"带宽成为瓶颈"（bandwidth-bound），不是"显存容量装不下"（capacity / OOM）**。参考课程特意改用 "bandwidth-bound" 一词，就是为了把它与容量耗尽区分开。容量账（什么放得下）是另一本账，放在第 3 章；本章只回答"多快"。
+
+## 1.2 算术强度与瓶颈判定
+
+### 定义与计数口径
+
+算术强度（arithmetic intensity）：
+
+```
+AI = FLOPs / Bytes
+```
+
+- **FLOPs**：算子执行的浮点运算数。口径：**1 次 FMA（乘加）= 2 FLOPs**；
+- **Bytes**：该算子本 step 在 HBM 与计算单元之间**搬运**的字节数（读 + 写），**不是数据在显存里的占用量**。参考课程强调这一区分：它"是建模的传输量，不是存储的参数占用"（modeled transfer volume, not the stored parameter footprint）。权重表占 1.19 GB，decode B=1 时 GEMM 把它读一遍 = 1.19 GB；B=16 时仍然只读一遍 = 1.19 GB（多出的字节来自激活与 KV，不来自权重）。
+
+计数口径全书冻结，模拟器与手算共用同一套：
+
+| 口径 | 约定 |
+| ---- | ---- |
+| 1 次 FMA | 2 FLOPs |
+| BF16 元素 | 2 bytes |
+| Bytes 计 | 本 step HBM 读 + 写：权重 + KV + 激活流量 |
+| 寄存器 / 片上共享内存中的中间结果 | **不计入**（这正是 FlashAttention 的意义） |
+| GEMM M×N×K | FLOPs = 2·M·N·K；权重 = 2·N·K B；激活入 = 2·M·K B，出 = 2·M·N B |
+
+### 三类算子的公式
+
+以 Qwen3-0.6B 配置（28 层，hidden 1024，16 q 头 / 8 kv 头，head_dim 128 → d_q = 2048，d_kv = 1024；参数与来源见第 0 章 §0.2）给出三类宏观组件的 per-step 公式。
+
+**① GEMM 类（QKV/O 投影 + FFN 线性层）**
+
+Decode（M = B 个 token）：
+
+```
+FLOPs ≈ 2·P·B        （P = 参与本 step GEMM 的参数数，0.6B ≈ 596M，含 LM head）
+Bytes ≈ 2·P          （全量权重扫描，与 B 无关）+ O(B) 激活流量
+AI(B) ≈ B            ← 核心恒等式：权重复用次数 = batch size
+```
+
+这是本章最重要的结论：**decode GEMM 的算术强度约等于 batch size**。B=1 → AI≈1；B=16 → AI≈16；对照 9070 XT 矩阵拐点 ≈305，全部 memory-bound。step 时间被钉在权重扫描时间 ≈ 2P/BW 上。交叉点 B\* ≈ AI\* ≈ 305：单卡 decode 要到 B≈300 量级，GEMM 才翻转为 compute-bound。
+
+Prefill（M = S 个 token，单请求）：
+
+```
+FLOPs ≈ 2·P_linear·S    （P_linear = 每 token 线性参数，0.6B ≈ 440M；LM head 仅末 token，忽略）
+Bytes ≈ 2·P_linear + O(S) 激活流量    （权重仍只读一遍）
+AI(S) 随 S 线性增长
+```
+
+存在交叉序列长 S\*（0.6B / 9070 XT：S\* ≈ 300–400，§1.3 算例；随激活流量口径移动 ±30%——口径必须冻结，否则交叉点漂移）：S < S\* memory-bound（权重扫描主导），S > S\* compute-bound（矩阵管线主导）。**同一个模型，短 prefill 带宽受限、长 prefill 计算受限**——prefill/decode 两种 phase 的硬件行为差异从这里开始。
+
+**② Attention 类**
+
+Prefill（稠密 attention，b=1，S token，L 层）：
+
+```
+FLOPs ≈ 4·S²·d_q·L        （QK^T 与 Softmax·V 各贡献 2·S²·d_q）
+Bytes ≈ 2·S·(2d_q + 2d_kv)·L    （读 Q/K/V + 写 O；不计 S² 中间结果）
+AI ≈ 0.67·S               （0.6B 配置代入 d_q=2048, d_kv=1024）
+```
+
+- S=512 → AI≈341，贴着拐点 305 上方 → compute-bound（贴边）；
+- S=128 → AI≈85 < 305 → memory-bound。此时 S² 项太小：attention 仅 ≈3.8 GFLOP，而同 step 的 GEMM ≈113 GFLOP——瓶颈仍在权重扫描。这是**短序列 prefill 陷阱**：直觉上"prefill 是 S² 计算，一定 compute-bound"，但 S=128 时不成立。
+
+大 S 方向上还有第二个陷阱，FlashAttention 直接针对它：若把 S×S attention 矩阵物化进 HBM（naive 实现，写一遍读一遍），则
+
+```
+Bytes_naive ≈ 2·n_heads·S²·2·L（attention 矩阵读写）+ 上式线性项
+AI_naive → 0.5 FLOP/byte   （S → ∞ 的有界上限）
+```
+
+naive attention 无论 S 多大都**钉死在访存斜坡上**。FlashAttention 用 tiling + recomputation 把 S² 中间结果留在片上：FLOPs 多约 13%（重算代价），HBM 流量降约 9 倍。参考课程（CMU 15-442 Week 5）的 A100 实测对照：标准 attention 66.6 GFLOPs / 40.3 GB / 41.7 ms，FlashAttention 75.2 GFLOPs / 4.4 GB / 7.3 ms——**多花 13% 的 FLOPs，省 9 倍访存，快 5.7 倍**。这是 Roofline 最经典的应用：花计算换访存，把算子从拐点左侧推到右侧。
+
+Decode（B 个请求，上下文 S_ctx，GQA：d_q/d_kv = 2）：
+
+```
+FLOPs ≈ 4·B·S_ctx·d_q·L
+Bytes ≈ 2·B·S_ctx·d_kv·2·L     （KV Cache 遍历，每请求读一遍）
+AI = d_q/d_kv = 2   （0.6B；与 B、S_ctx 均无关）
+```
+
+与 GEMM 的关键对照：**decode attention 的 AI 与 B 无关**——FLOPs 与 KV 流量随 B 同倍增长。batching 救得了 GEMM（AI：1→16），救不了 KV 遍历（恒 AI≈2）。这是 GQA 设计的基本动机之一（压 d_kv 缩短 KV 扫描），也是"KV 扫描成本"在后续章节反复出现（KV 量化、prefix cache）的屋顶线根源。
+
+**③ Element-wise / 向量类（RMSNorm、RoPE、激活函数）**
+
+```
+FLOPs ≈ O(1) FLOP/元素；Bytes ≈ 2 bytes/元素（读 + 写）
+AI ≈ 1–2
+```
+
+对照向量管线拐点 ≈76，此类算子**恒为带宽受限**，时间按带宽下界估算（t ≈ Bytes/BW）。单步时间很小（<10 μs 量级），但它是 batching 消不掉的固定项，在极小 batch 时构成 step 下界的一部分。
+
+### 判定规则与交叉点
+
+给定算子，瓶颈判定的完整流程：
+
+1. 选对计算管线（矩阵 / 向量）→ 取对应峰值与拐点 AI\*；
+2. 按冻结口径算该算子的 AI；
+3. AI < AI\* → memory-bound，t ≈ Bytes/BW；AI > AI\* → compute-bound，t ≈ FLOPs/Peak（均为标称下界）；
+4. **逐组件判定，再合成 step**——模型级"判定"是组件级判定的合成，不是模型级的一个 AI（§1.3）。
+
+模型最有价值的输出不是单个数字，而是**交叉点与敏感度排序**：9070 XT 上 decode GEMM B\*≈305、prefill GEMM S\*≈300–400、ctx=1024 时 batching 的成本被 KV 扫描接管（§1.3 算例 B）。每个交叉点都是后续设计决策（batch 开到多大、是否分离 prefill/decode、KV 是否量化）的直接输入，第 7、9 章会用到这些数字。
+
+## 1.3 计算时间量级估算
+
+### 从 AI 到时间：组件内 max，组件间 sum
+
+对每个组件 c：
+
+```
+t_c = max( FLOPs_c / (Peak_c × η) ,  Bytes_c / BW )    （η=1 标称）
+t_step = Σ_c t_c + T_fixed                             （T_fixed：launch 开销，本章未校准）
+```
+
+为什么"组件内 max、组件间 sum"是正确结构，而不能对整段取一次 max：组件（各层 GEMM、attention、norm）作为 kernel **按层序串联执行**，step 时间至少是各组件时间之和；组件内部计算与访存**并行**，取 max。对全 stage 的总 FLOPs 与总 Bytes 取一个 max，等于假设所有组件的计算与访存彼此完全重叠。数学上恒有
+
+```
+Σ_c max(t_comp_c, t_mem_c)  ≥  max( Σ_c t_comp_c ,  Σ_c t_mem_c )
+```
+
+两边相等**当且仅当所有组件绑定同一资源**（全 memory-bound 或全 compute-bound）。一旦有组件跨过拐点、绑定资源不同，stage 级 max 就系统性偏小——偏小的量正是各组件中"被并行浪费掉的较快那一项"之和。本卡的 decode 恰好全 memory-bound（两边相等，见算例 A/B），但 prefill step（GEMM 与 attention 分处拐点两侧，见算例 C）和 B>B\* 的大 batch decode 都会打开这个差距。模拟器的 per-component 结构（Gist 开发计划 ①②：每组件输出 FLOPs/Bytes/AI/判定/t）就是为这个合成而存在的。
+
+量级纪律：本章输出一律保留 1–2 位有效数字 + 数量级，并始终标注"离硬件极限还有多远"（t / 下界 ≥ 1，差距即 η 与工程优化的空间）。
+
+### 算例 A：Qwen3-0.6B decode B=1（ctx=1024）——组件表
+
+在第 0 章 §0.5.3 纸面演练（权重扫描 1.19 GB、KV 112 KiB/token、t_step≈2.0–2.3 ms）基础上，补全 AI 与判定：
+
+| 组件 | FLOPs | Bytes (HBM) | AI | t_comp (μs) | t_mem (ms) | t_c (ms) | 判定 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| GEMM（线性层 + LM head） | 1.19e9 | 1.19e9 | 1.0 | 6.1 | 1.86 | 1.86 | memory |
+| Attention（QK^T + Softmax·V） | 2.3e8 | 1.17e8（KV 遍历） | 2.0 | 1.2 | 0.18 | 0.18 | memory |
+| Element-wise（RMSNorm/RoPE/SiLU） | <1e7 | <1e6 | 1–2 | <0.1 | <0.002 | ≈0 | memory（带宽下界） |
+| **t_step（标称下界）** | | | | | | **≈2.05 + T_fixed** | 全组件 memory-bound |
+
+- t_step ≈ 2.0–2.3 ms（含未校准 T_launch），上限 ≈430–500 tok/s——与第 0 章纸面演练一致（1.85/1.86 为同一数值的不同舍入口径），但每个数字背后现在都有 AI 与判定；
+- 结论：decode B=1 **完全 memory-bound**，step 时间 91% 被权重扫描钉住（1.86 / 2.05 ms）。能改变这一项的只有两条路：减少每权重字节数（量化，后续章节）或提高权重复用次数（batching，算例 B）。
+
+模型缩放（同卡，B=1，ctx=1024，权重扫描下界 t ≈ 2P/BW）：
+
+| 模型 | 权重字节 | t_step 下界 | 上限吞吐 |
+| ---- | ---- | ---- | ---- |
+| Qwen3-0.6B | 1.19 GB | ≈2.0 ms | ≈430–500 tok/s |
+| Qwen3-1.7B | ≈3.4 GB | ≈5.3 ms | ≈180–190 tok/s |
+| Qwen3-4B | ≈8.0 GB | ≈12.5 ms | ≈80 tok/s |
+
+decode 上限吞吐 ∝ 1/P：**同一张卡上，decode 吞吐与参数量成反比**——这是屋顶线层面的"为什么小模型在消费级卡上 decode 快"。
+
+### 算例 B：batching 曲线——成本被 KV 扫描接管
+
+0.6B，ctx=1024，9070 XT，标称。组件时间：GEMM t_mem ≈ 1.86–1.91 ms（t_comp = 6–98 μs，始终远小于 t_mem）；KV 遍历 t = 0.18 / 0.73 / 2.94 ms；Element-wise 忽略。step = 组件 sum：
+
+| B | GEMM AI | KV 字节 | t_step (ms) | 聚合吞吐 | 每请求吞吐 |
+| ---- | ---- | ---- | ---- | ---- | ---- |
+| 1 | 1.0 | 117 MB | ≈2.1 | ≈480 tok/s | ≈480 tok/s |
+| 4 | 4.0 | 469 MB | ≈2.6 | ≈1,540 tok/s | ≈385 tok/s |
+| 16 | 16 | 1.88 GB | ≈4.9 | ≈3,300 tok/s | ≈206 tok/s |
+
+读表（敏感度排序——模型最可靠的输出）：
+
+1. **B=1→16，聚合吞吐 ×6.8**：GEMM 被 batching 救起（AI 1→16，权重字节复用 16 倍）——decode batching 的第一杠杆，也是第 7 章 continuous batching 直觉的屋顶线来源；
+2. **每请求吞吐单调下降（480→206）**：ctx=1024 不算短，KV 扫描（AI 与 B 无关）随 B 线性增长；B=16 时 KV 字节（1.88 GB）已超过权重字节（1.19 GB），成为 step 的主要成本；
+3. **stage 级"AI≈B"在这里会误导**：把整个 decode step 的 AI 写成 ≈B、得出"B=16 仍远低于 305，所以整体还是 memory-bound"，无法解释每请求吞吐为何塌掉——必须把 GEMM 与 Attention 拆开，成本结构才可见。这正是 per-component 输出（而非 stage 级一个 max）的教学理由。
+
+### 算例 C：prefill S 曲线与 phase 不对称
+
+0.6B，b=1，9070 XT，标称。GEMM 用 P_linear≈440M；激活流量按**未融合 kernel** 口径计数（约 0.8 MB/token），S\* 会随融合口径在 300–450 之间移动——口径冻结后该移动才成为可解释的校准项：
+
+| S | GEMM t_comp | GEMM t_mem | GEMM 判定 | Attention t | t_step ≈ | step 判定 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 128 | 0.58 ms | ≈1.4–1.5 ms | memory | 0.07 ms（memory） | ≈1.5 ms | **memory**（权重扫描） |
+| 512 | 2.3 ms | ≈2.0 ms | compute（贴边） | 0.31 ms（compute，AI≈341） | ≈2.7 ms | **compute**（GEMM） |
+| 2048 | 9.3 ms | ≈4.0 ms | compute | 4.9 ms（compute，AI≈1365） | ≈14 ms | **compute** |
+
+- 交叉点 **S\*≈300–450**：其下 prefill 同样被权重扫描钉住（TTFT 下界 ≈1.4 ms，与 S 几乎无关）；其上进入矩阵管线（TTFT 下界 ∝ S）；
+- **phase 不对称**：同一个 0.6B，decode（B∈{1,4,16}）全 memory-bound，prefill S≥512 全 compute-bound。prefill 与 decode 是硬件利用率的两种不同 regime——"PD 分离"（分离 prefill/decode，第 9 章）的屋顶线动机在此；
+- 量级换算：prefill S=512 ≈ 2.7 ms（η=1 下界）；取 η≈0.4（参考课程推理典型范围 0.35–0.5）则 ≈6–7 ms，prefill 速率 ≈ 70–100 tok/s（标称估计，测前记录）。
+
+### 预测留痕
+
+本章产生的每个预测（以上全部算例 + §1.4 模拟器实验的全部点）按第 0 章 §0.5 底稿模板记录：
+
+```
+prediction_id: pred_ch1_<experiment_id>_<config_id>
+calibration_version: nominal
+stored_at: <ISO 时间戳，必须先于第 2 章测量开始>
+metrics: { 每组件 FLOPs/Bytes/AI/判定/t_c, t_step, 吞吐上限, ... }
+```
+
+本章是 paper-only（无真机），但**留痕必须先于测量**：第 2 章同配置上真机时，按 config_id 查回这条记录得到预测值。先看了测量值再拟合只算回拟合，不算验证（§0.3 纪律）。
+
+## 1.4 模拟器实验：预测典型算子的瓶颈与时间
+
+本章全部实验在模拟器上完成（nominal 参数，无真机 Profile——真机验证与校准自第 2 章开始）。实验分两个任务：**任务 1** 用 step 级宏分解覆盖 Qwen3 三个规模的 prefill/decode 配置（§1.2/§1.3 公式的执行版）；**任务 2** 用三个 primitive 算子建立"直觉 vs 判定"的校准练习。
+
+### 实验设置
+
+| 项 | 内容 |
+| ---- | ---- |
+| 模型 | Qwen3-0.6B / Qwen3-1.7B / Qwen3-4B（BF16，config 以 HF 仓库为准，§0.2 硬件表） |
+| 硬件 | RX 9070 XT 16GB（T1，标称参数完整）；W7900D（T4，48 GB，≥4 卡，算力/带宽/互联参数待确认——T4 行走 CPU 预测路径，全部结论标注"待确认参数"，不混入 T1 结论） |
+| 负载 | prefill：b=1，S∈{128, 512, 2048}；decode：B∈{1, 4, 16}，平均 ctx=1024（closed-loop，与模拟器一致） |
+| 校准 | calibration=nominal（标称参数，η=1，T_fixed 未校准） |
+
+### 任务 1：step 级宏分解（per-component 输出）
+
+对每个 (模型, 配置) 点，把单 step 拆成三类组件并分别预测：
+
+| 组件类 | 覆盖算子 | 预测口径 |
+| ---- | ---- | ---- |
+| GEMM | QKV/O 投影 + FFN 线性层（含 LM head） | §1.2 ①：FLOPs≈2·P·B（decode）/ 2·P_linear·S（prefill），Bytes≈权重字节（decode B≤B\*） |
+| Attention | QK^T + Softmax·V（FlashAttention 口径） | §1.2 ②：prefill FLOPs≈4S²d_qL；decode FLOPs≈4B·S_ctx·d_qL，Bytes 含 KV Cache 遍历访存 |
+| Element-wise | RMSNorm / RoPE / SiLU / 残差加法 | 带宽下界估算：t ≈ Bytes/BW，AI≈1–2 恒 memory-bound |
+
+每组件在 result.json 中输出固定字段集（Gist 开发计划 ②）：
+
+```json
+{
+  "component": "gemm | attention | elementwise",
+  "flops": 0.0, "bytes": 0.0, "ai": 0.0, "ridge": 0.0,
+  "bound": "compute | memory",
+  "t_compute_ms": 0.0, "t_memory_ms": 0.0, "t_ms": 0.0
+}
+```
+
+step 级再输出 t_step（= Σ t_ms + T_fixed 口径）与整体 FLOPs/Bytes/AI——**整体 AI 仅作参考展示，不得用于瓶颈判定**（算例 B 的第 3 条：stage 级 AI≈B 会掩盖 KV 接管）。
+
+判定核对：每个组件的 `bound` 必须与 §1.2 手算判定一致；不一致即为模拟器计数 bug（不是"测量误差"），归因并修正后重跑。
+
+### 任务 2：三个 primitive 算子——直觉校准
+
+9070 XT 标称参数下，对三个代表性算子做"先猜判定，再算 AI"的练习：
+
+| 算子 | FLOPs | Bytes | AI | t_comp (ms) | t_mem (ms) | 判定 | 先直觉猜什么 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| matmul M=N=K=4096，BF16 | 137.4 GFLOP | 100.7 MB | ≈1365 | 0.70 | 0.16 | **compute** | compute（对） |
+| LayerNorm S=2048, d=1024，BF16 | ≈8.4 MFLOP | ≈8.4 MB | ≈1 | <0.001 | 0.013 | **memory** | memory（对） |
+| FlashAttention S=512（Qwen3-0.6B，28 层全模型） | ≈60 GFLOP | ≈174 MB | ≈343 | 0.31 | 0.27 | **compute**（FA，贴边）；naive 版 ≈1.0 ms **memory** | 容易猜错 |
+
+第三个算子是本章直觉校准的关键（§1.2 ② 的 CMU A100 表是同一现象的公开数据）：attention S=512 的 FLOPs（~S² 项）不低（60 GFLOP），但 naive 实现还要读写 S×S 注意力中间矩阵（S=512 上额外 ≈472 MB），把 Bytes 推到 ≈646 MB、AI 掉到 ≈93——远低于 305 拐点，memory-bound（§1.2 的 AI→0.5 是它的 S→∞ 渐近值，S=512 还没到那里）。FA 用 tiling + 重计算消掉这块 S² 读写（CMU A100 表实测访存 ÷9），把算子**从 memory 斜坡推上 compute 屋顶**：本模型 S=512 上 646→174 MB、AI 93→343。先猜"attention 很重 FLOPs，应该 compute-bound"、再算出 naive 版 AI≈93 仍 memory-bound 的人，恰好完成了教学目标 4 的练习。
+
+**decode GEMM B=1 是第二个直觉校准算子**：它每 step 的 FLOPs 就是模型的总 FLOP 计数（0.6B 上 1.19 GFLOP/step），直觉上"每 step 都在做全部乘法"像 compute-bound；实际 AI≈1 ≪ 305，纯 memory-bound，被 1.86 ms 权重扫描钉死。两个校准算子互为镜像——decode GEMM：FLOPs 不小、AI 很小；naive attention：FLOPs 不小、访存被 S² 项撑爆。直觉错处的共同点：**数了 FLOPs，没数"这些 FLOPs 复用了多少字节"**。
+
+### 模拟器接口与产物
+
+按第 0 章 §0.4 六元组契约调用（calibration 显式传参，不得隐式）：
+
+```
+simulate(workload, infra, strategy, calibration="nominal", evaluation, execution)
+  → manifest.json / result.json / requests.jsonl / events.jsonl / logs.txt
+```
+
+本章用到的预测接口（Gist 开发计划 ③：calibration 必须是显式参数）：
+
+```
+predict_prefill(batch_tokens=S, model_spec, device, calibration="nominal")
+predict_decode_step(batch_size=B, context_lengths=[1024]*B, model_spec, device, calibration="nominal")
+```
+
+每个配置点的输出含 prediction_id 与 stored_at（§1.3 预测留痕），写入实验底稿（`docs/public/part0-intro/chapter0/experiment-draft.yaml` 模板），先于第 2 章任何测量。
+
+### 手算对模拟器：第一条"预测对预测"校准记录
+
+重跑第 0 章 §0.5.3 的纸面演练场景（0.6B decode B=1 ctx=1024），两列对照：
+
+| 指标 | 手算（§0.5.3 / §1.3） | 模拟器 nominal（待执行，填入） |
+| ---- | ---- | ---- |
+| t_weight (ms) | 1.85 | <待执行> |
+| t_attn_kv (ms) | 0.18 | <待执行> |
+| t_step (ms) | 2.0–2.3（含未校准 T_fixed） | <待执行> |
+| 吞吐上限 (tok/s) | 430–500 | <待执行> |
+
+两侧同为 nominal，**应一致到计数口径级**：若差值非零，是模拟器的计数/公式 bug（哪个组件的 FLOPs 或 Bytes 公式写错），按"归因 → 修正 → 重跑"处理，不得标注为测量误差。这是全书第一条预测对预测校准记录（模拟器校准到手算锚点）；第 2 章起，两者一起被校准到真机。
+
+### 验收清单
+
+本章完成的判据（全部满足才算完成）：
+
+1. 3 模型 × (3 prefill + 3 decode) = 18 个配置点，每个点输出完整 per-component 字段集（flops/bytes/ai/ridge/bound/t_compute_ms/t_memory_ms/t_ms）+ step 级 t_step；
+2. 两张 Roofline 拐点图（9070 XT 矩阵/向量两条线；W7900D 一条线标注"待确认参数"），图上标注全部 18 个预测点位置；
+3. 全部组件判定与 §1.2 手算一致；不一致项已归因并修正；
+4. 算例 B/C 的表格可由模拟器复现（同配置点输出与表内数值一致到舍入口径）；
+5. 全部预测点有 prediction_id + stored_at，且 stored_at 先于第 2 章任何测量；
+6. W7900D 行全部标注"待确认参数"，未混入 T1 结论。
+
+实验产物与代码目录：`code/part1-modeling/chapter1/`。
 
 ## 实验设计
 
-### 模拟器实验
-
-给定矩阵乘法、LayerNorm 与 FlashAttention，用模拟器预测它们在 W7900D / 9070 XT 上是 Compute-bound 还是 Memory-bound，给出预测时间。故意选一个"看起来像 compute-bound 但实际带宽受限"的算子，让学生校准直觉。
-
-### 真机实验：无
-
-本章全部在模拟器上完成；真机验证与 Profile 自第 2 章开始。
-
-### 闭环与交付
-
-- **预测（测前留存）**：各算子的瓶颈判定、预测时间与选点理由。
-- **实测（选点运行）**：本章无。
-- **校准（解释误差）**：本章无；"预测 → 实测"的误差校准在第 2 章完成。
-- **决策（提交）**：场景定义（模型配置、硬件、负载）、预测曲线与瓶颈判定说明。
+- **模拟器实验**：Qwen3-0.6B / 1.7B / 4B × (prefill S∈{128, 512, 2048}, decode B∈{1, 4, 16}, ctx=1024)，nominal 参数。输出：per-component FLOPs/Bytes/AI/瓶颈判定、Roofline 拐点图（9070 XT 两线 + W7900D 待确认线）、step 时间与吞吐上限的量级（含 decode GEMM 与 naive attention 两个直觉校准算子）。
+- **真机实验**：无。本章全部预测基于标称参数完成，真机验证与 Profile 自第 2 章开始。
+- **闭环与交付**：
+  - 预测：每个配置点的瓶颈判定（per-component）、预测 step 时间 / 吞吐上限、选点理由，全部带 prediction_id + stored_at；
+  - 实测：无（本章无真机）；
+  - 校准：无（第 2 章执行）。本章唯一校准记录 = 手算 vs 模拟器一致性检查（§1.4"手算对模拟器"）；
+  - 决策：场景定义（Qwen3 × AMD T1/T4）+ 预测曲线（batching 曲线、prefill S 曲线）+ 拐点图 + 瓶颈判定说明（per-component，含两个直觉陷阱：decode GEMM B=1 与 naive attention）。
 
 ## 本章小结
 
-- 本章目前是 Alpha 阶段的内容梗概、实验设计与教学目标骨架，正式正文会在对应实验跑通后补齐。
-- 与本章相关的代码、实验配置与测量记录会放在 `code/part1-modeling/chapter1/`。
+- **Roofline 单算子模型**：`t = max(FLOPs/(Peak·η), Bytes/BW) + T_fixed`，取 max 而非 sum——计算与访存并行执行，step 时间至少是二者中较慢者；吞吐视角下 Attainable FLOPS = min(Peak, AI×BW)，拐点 AI\* = Peak/BW（9070 XT 矩阵管线 ≈305、向量管线 ≈76，**选对峰值是判定的一部分**）。
+- **计数口径必须冻结**：AI = FLOPs/Bytes，1 FMA=2 FLOPs，BF16=2B，Bytes 是 HBM 流量（权重 + KV + 激活读写），**不是显存占用**，寄存器/片上中间结果不计入；GEMM M×N×K 对应 2·M·N·K FLOPs、(MN+MK+NK)×2B 权重流量。
+- **核心恒等式**：decode GEMM AI≈B、B\*≈305（batching 救 GEMM 的杠杆）；decode Attention AI=d_q/d_kv=2，与 B 和 S_ctx 无关（GQA 下 KV 遍历成本不被 batching 摊薄）；prefill naive attention AI→0.5，FA 口径 AI≈0.67S、S\*≈300–450（+13% FLOPs 换 ÷9 访存）。
+- **nominal（η=1）是下界不是预言**：解析估计的可靠性排序——瓶颈判定（binding constraint）> 交叉点位置（crossover）> 敏感度排序 > 单点数值；单点时间典型偏离真实 1.5–2×，§2 用真机拟合 η。
+- **phase 不对称**：同一模型 decode 全 memory-bound、prefill S≥512 全 compute-bound——PD 分离（第 9 章）的屋顶线动机；batching 在 ctx 较长时成本被 KV 扫描接管（算例 B 每请求吞吐 480→206 tok/s）。
+- **两个直觉陷阱**：decode GEMM B=1 数着全部 FLOPs 却 AI≈1（纯 memory-bound）；naive attention S² FLOPs 不小却被 S² 中间矩阵访存推回 memory 斜坡。共同错误：数了 FLOPs，没数字节复用。
+- **交付**：`code/part1-modeling/chapter1/` 下 18 个配置点的 per-component 预测（含 prediction_id + stored_at，先于第 2 章测量）+ 两张 Roofline 拐点图 + 手算 vs 模拟器一致性记录。
 
 ## 延伸阅读
 
-- 待补充。
+- **mlsysbook.ai（Harvard CS249r 教材）**：Vol I "System Paradigms" 章（Roofline 形式化、ridge/machine balance point、ResNet-50/A100 b=1 贴着拐点算例、"bandwidth-bound vs 显存不足"命名区分）；[mlsysim 文档 "The Math"](https://mlsysbook.ai)（T = max(...) + Dispatch_Tax 的完整推导与 η 典型范围）。
+- **CMU 15-442/15-642（msyscourse.org）**：Week 5 Transformers/Attention slides（FlashAttention 在 A100 上的 FLOPs/访存/时间对照表——本章任务 2 的公开数据来源）；Week 9 LLM Serving slides（prefill/decode timeline、static batching 问题、continuous batching、PagedAttention）。
+- Williams, Waterman & Patterson, *"Roofline: An Insightful Visual Performance Model for Multicore Architectures,"* Communications of the ACM, 2009（Roofline 原始论文）。
+- Dao et al., *"FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness,"* 2022（tiling + recomputation 的 IO 复杂度分析）。
+- 本书第 0 章（协议、纸面演练、硬件表）与 `curriculum/measurement-protocol.md`；第 2 章（η 拟合与误差归因）；第 3 章（显存账：容量维度的三条账）。
+- [hello-gpu / hello-rocm](https://github.com/datawhalechina/hello-gpu)（datawhalechina，GPU/ROCm 基础参考写法）。
