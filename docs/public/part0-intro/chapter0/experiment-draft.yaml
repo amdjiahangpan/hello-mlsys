@@ -1,0 +1,59 @@
+# Hello MLSys · 纸面实验底稿模板
+# 来源: 第 0 章 协议与纸面演练 §0.5（docs/part0-intro/chapter0）
+# 位置: docs/public/ 下按站点路径镜像, 全书各章实验底稿共用此模板
+#
+# 用法:
+#   - 每个实验复制一份到对应章节的实验目录; 一个实验一份底稿, 字段固定
+#   - 每次重跑新建目录, 不得覆盖历史底稿
+#
+# 纪律 (全书通用, 见 §0.3 / §0.4):
+#   - prediction.stored_at 必须先于测量开始 —— 预测留痕, 先看了测量值再拟合只算回拟合
+#   - calibration_configs 用于拟合; holdout_configs 只用于评测, 测前冻结, 不得回头再调
+#   - 同一配置跑多轮测的是方差, 不得宣称"前几轮校准、最后一轮验证"
+#   - 不支持的机制标注 not_covered / out_of_domain, 不静默改配置
+#
+# 下方为第 0 章 §0.5.3 的纸面演练示例 (Qwen3-0.6B / T1 / decode B=1, ctx=1024),
+# 字段注释即填写说明; 后续章节使用时整体替换示例值, 字段结构保持不变。
+
+experiment_id: exp_ch1_001
+chapter: 1
+hypothesis: "decode B=1 是 memory-bound：单步 ≈ 一次全量权重扫描"
+
+scenario:                                # config_id 的指纹: 模型 / 硬件 / 负载, 换任一即新配置
+  model: Qwen3-0.6B (BF16)               # 以 HF 仓库 ID 为准
+  hardware: RX 9070 XT 16GB              # 档位 T1
+  workload: decode, B=1, ctx=1024
+
+environment:                             # 真机实验前用 §0.2 快照命令填写; 纸面演练填 "paper-only"
+  gpu_driver: ""
+  rocm_version: ""
+  framework: ""
+  os: ""
+
+prediction:
+  tool: 手算                             # 第 1 章起换模拟器 vX.X
+  calibration_version: nominal           # 标称参数; 第 2 章起填 profiles/vN.json
+  metrics:
+    weight_bytes_per_step: 1.19e9        # 见 0.5.3 参数计数
+    t_weight_ms: 1.85
+    t_attn_kv_ms: 0.18
+    t_step_ms: "≈2.0–2.3（含未校准 T_launch）"
+    upper_bound_tok_s: "≈430–500"
+  stored_at: "<ISO 时间戳，必须先于 measurement 开始>"
+
+measurement_plan:
+  warmup: 10
+  samples: 50
+  rounds: 3
+  timeout_s: 180
+  round_budget_s: 900
+  calibration_configs:                   # 拟合用, 测前冻结
+    - fixed-seq-prefill
+    - fixed-concurrency-decode
+  holdout_configs:                       # 只评测, 不得参与拟合; 用后即烧, 换配置重冻
+    - "<未见过的 workload 配置>"
+
+acceptance:
+  thresholds:
+    err_step_time: "<20%（校准后）"
+  decision_rule: "留出集误差达标 → 采纳参数版本；否则归因并留 unresolved"
