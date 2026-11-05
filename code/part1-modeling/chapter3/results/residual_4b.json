@@ -1,0 +1,116 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-11-05T07:39:20",
+    "python": "3.13.11",
+    "torch": "2.16.0.dev20261019+rocm10.1",
+    "rocm": "7.16.26385",
+    "os": "Linux-6.14.0-37-generic-x86_64-with-glibc2.41",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "gpu_arch": {
+      "AMD Radeon RX 7900 XTX": "gfx1100",
+      "AMD Radeon RX 9070 XT": "gfx1201"
+    },
+    "vram_gib": 15.9,
+    "driver": "6.16.13"
+  },
+  "measured_at": "2026-11-05T07:39:20Z",
+  "base_alloc_after_ctx_bytes": 512,
+  "allocated_bytes": 8101709824,
+  "params": {
+    "n_tensors": 398,
+    "n_unique_storage": 398,
+    "param_storage_bytes": 8044936192,
+    "param_storage_gib": 7.4924
+  },
+  "buffers": {
+    "total_bytes": 512,
+    "top": [
+      {
+        "name": "model.rotary_emb.inv_freq",
+        "numel": 64,
+        "dtype": "torch.float32",
+        "bytes": 256
+      },
+      {
+        "name": "model.rotary_emb.original_inv_freq",
+        "numel": 64,
+        "dtype": "torch.float32",
+        "bytes": 256
+      }
+    ]
+  },
+  "gap_bytes": 56773120,
+  "gap_gib": 0.0529,
+  "gap_vs_allocated_pct": 0.701,
+  "snapshot": {
+    "n_active_blocks": 400,
+    "active_block_sum_bytes": 8101709824,
+    "block_padding_bytes": 56773120,
+    "block_padding_gib": 0.0529,
+    "top10_block_sizes": [
+      778043392,
+      50331648,
+      50331648,
+      50331648,
+      50331648,
+      50331648,
+      50331648,
+      50331648,
+      50331648,
+      50331648
+    ],
+    "top10_padded_blocks": [
+      {
+        "size": 50331648,
+        "requested": 49807360,
+        "pad": 524288
+      },
+      {
+        "size": 50331648,
+        "requested": 49807360,
+        "pad": 524288
+      },
+      {
+        "size": 50331648,
+        "requested": 49807360,
+        "pad": 524288
+      },
+      {
+        "size": 50331648,
+        "requested": 49807360,
+        "pad": 524288
+      },
+      {
+        "size": 50331648,
+        "requested": 49807360,
+        "pad": 524288
+      },
+      {
+        "size": 50331648,
+        "requested": 49807360,
+        "pad": 524288
+      },
+      {
+        "size": 50331648,
+        "requested": 49807360,
+        "pad": 524288
+      },
+      {
+        "size": 50331648,
+        "requested": 49807360,
+        "pad": 524288
+      },
+      {
+        "size": 50331648,
+        "requested": 49807360,
+        "pad": 524288
+      },
+      {
+        "size": 50331648,
+        "requested": 49807360,
+        "pad": 524288
+      }
+    ],
+    "largest_segment_gib": 0.7246
+  }
+}

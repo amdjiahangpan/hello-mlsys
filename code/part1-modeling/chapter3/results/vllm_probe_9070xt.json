@@ -1,0 +1,320 @@
+{
+  "environment": {
+    "container": "rocm/vllm:rocm10.1.0_ubuntu24.04_py3.14-pytorch_2.13.0_vllm-0.29.0",
+    "torch": "2.13.0+rocm10.1.0",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "vram_gib": 15.92,
+    "note": "HIP_VISIBLE_DEVICES=1 重映射：宿主 GPU[1] 9070 XT → 容器 device 0"
+  },
+  "idle": {
+    "total_gib": 15.922,
+    "used_gib": 0.0557,
+    "source": "amdsmi",
+    "allocated_gib": 0.0,
+    "reserved_gib": 0.0
+  },
+  "engines": {
+    "qwen3_4b_u080_s4096": {
+      "model": "/mnt/public/models/Qwen3-4B",
+      "util": 0.8,
+      "max_model_len": 4096,
+      "weights_gib": 7.56,
+      "consumed_gib": 8.11,
+      "activation_gib": 0.6,
+      "cudagraph_gib": 0.0,
+      "free_mem_gib": 15.86,
+      "total_mem_gib": 15.92,
+      "target_gib": 12.74,
+      "kv_available_gib": 4.03,
+      "kv_in_use_gib": 4.03,
+      "kv_tokens": 29344,
+      "max_concurrency": 7.16,
+      "raw": [
+        "(EngineCore pid=220) INFO 11-05 07:28:28 [weight_utils.py:863] Filesystem type for checkpoints: NFS4. Checkpoint size: 7.49 GiB. Available RAM: 51.69 GiB.",
+        "(EngineCore pid=220) INFO 11-05 07:28:35 [model_runner.py:404] Model loading took 7.56 GiB memory and 8.648116 seconds",
+        "(EngineCore pid=220) INFO 11-05 07:28:35 [utils.py:306] Using LHBNC KV cache layout.",
+        "(EngineCore pid=220) INFO 11-05 07:28:39 [gpu_worker.py:625] Available KV cache memory: 4.03 GiB",
+        "(EngineCore pid=220) INFO 11-05 07:28:39 [kv_cache_utils.py:2032] GPU KV cache size: 29,344 tokens, Maximum concurrency for 4,096 tokens per request: 7.16x",
+        "(EngineCore pid=220) INFO 11-05 07:28:40 [gpu_worker.py:860] Free memory on device (15.86/15.92 GiB) on startup. Desired GPU memory utilization is (0.8, 12.74 GiB). Actual usage is 8.11 GiB for consumed memory (weights +",
+        "(EngineCore pid=220) INFO 11-05 07:28:54 [core.py:368] init engine (profile, create kv cache, warmup model) took 18.16 s"
+      ],
+      "non_weight_gib": 0.55,
+      "num_blocks": null,
+      "block_size": null,
+      "init_seconds": 63.9,
+      "mem_after_start": {
+        "total_gib": 15.922,
+        "used_gib": 12.7441,
+        "source": "amdsmi",
+        "allocated_gib": 0.0,
+        "reserved_gib": 0.0
+      }
+    },
+    "qwen3_4b_u080_s8192": {
+      "model": "/mnt/public/models/Qwen3-4B",
+      "util": 0.8,
+      "max_model_len": 8192,
+      "weights_gib": 7.56,
+      "consumed_gib": 8.11,
+      "activation_gib": 0.6,
+      "cudagraph_gib": 0.0,
+      "free_mem_gib": 15.86,
+      "total_mem_gib": 15.92,
+      "target_gib": 12.74,
+      "kv_available_gib": 4.03,
+      "kv_in_use_gib": 4.03,
+      "kv_tokens": 29344,
+      "max_concurrency": 3.58,
+      "raw": [
+        "(EngineCore pid=384) INFO 11-05 07:29:20 [weight_utils.py:863] Filesystem type for checkpoints: NFS4. Checkpoint size: 7.49 GiB. Available RAM: 51.18 GiB.",
+        "(EngineCore pid=384) INFO 11-05 07:29:27 [model_runner.py:404] Model loading took 7.56 GiB memory and 8.504929 seconds",
+        "(EngineCore pid=384) INFO 11-05 07:29:27 [utils.py:306] Using LHBNC KV cache layout.",
+        "(EngineCore pid=384) INFO 11-05 07:29:30 [gpu_worker.py:625] Available KV cache memory: 4.03 GiB",
+        "(EngineCore pid=384) INFO 11-05 07:29:30 [kv_cache_utils.py:2032] GPU KV cache size: 29,344 tokens, Maximum concurrency for 8,192 tokens per request: 3.58x",
+        "(EngineCore pid=384) INFO 11-05 07:29:30 [gpu_worker.py:860] Free memory on device (15.86/15.92 GiB) on startup. Desired GPU memory utilization is (0.8, 12.74 GiB). Actual usage is 8.11 GiB for consumed memory (weights +",
+        "(EngineCore pid=384) INFO 11-05 07:29:33 [core.py:368] init engine (profile, create kv cache, warmup model) took 5.83 s"
+      ],
+      "non_weight_gib": 0.55,
+      "num_blocks": null,
+      "block_size": null,
+      "init_seconds": 36.6,
+      "mem_after_start": {
+        "total_gib": 15.922,
+        "used_gib": 12.7441,
+        "source": "amdsmi",
+        "allocated_gib": 0.0,
+        "reserved_gib": 0.0
+      }
+    },
+    "qwen3_4b_u080_s16384": {
+      "model": "/mnt/public/models/Qwen3-4B",
+      "util": 0.8,
+      "max_model_len": 16384,
+      "weights_gib": 7.56,
+      "consumed_gib": 8.11,
+      "activation_gib": 0.6,
+      "cudagraph_gib": 0.0,
+      "free_mem_gib": 15.86,
+      "total_mem_gib": 15.92,
+      "target_gib": 12.74,
+      "kv_available_gib": 4.03,
+      "kv_in_use_gib": 4.03,
+      "kv_tokens": 29344,
+      "max_concurrency": 1.79,
+      "raw": [
+        "(EngineCore pid=543) INFO 11-05 07:29:58 [weight_utils.py:863] Filesystem type for checkpoints: NFS4. Checkpoint size: 7.49 GiB. Available RAM: 50.93 GiB.",
+        "(EngineCore pid=543) INFO 11-05 07:30:06 [model_runner.py:404] Model loading took 7.56 GiB memory and 8.742934 seconds",
+        "(EngineCore pid=543) INFO 11-05 07:30:06 [utils.py:306] Using LHBNC KV cache layout.",
+        "(EngineCore pid=543) INFO 11-05 07:30:09 [gpu_worker.py:625] Available KV cache memory: 4.03 GiB",
+        "(EngineCore pid=543) INFO 11-05 07:30:09 [kv_cache_utils.py:2032] GPU KV cache size: 29,344 tokens, Maximum concurrency for 16,384 tokens per request: 1.79x",
+        "(EngineCore pid=543) INFO 11-05 07:30:09 [gpu_worker.py:860] Free memory on device (15.86/15.92 GiB) on startup. Desired GPU memory utilization is (0.8, 12.74 GiB). Actual usage is 8.11 GiB for consumed memory (weights +",
+        "(EngineCore pid=543) INFO 11-05 07:30:12 [core.py:368] init engine (profile, create kv cache, warmup model) took 5.82 s"
+      ],
+      "non_weight_gib": 0.55,
+      "num_blocks": null,
+      "block_size": null,
+      "init_seconds": 36.3,
+      "mem_after_start": {
+        "total_gib": 15.922,
+        "used_gib": 12.7441,
+        "source": "amdsmi",
+        "allocated_gib": 0.0,
+        "reserved_gib": 0.0
+      }
+    },
+    "qwen3_4b_u090_s4096": {
+      "model": "/mnt/public/models/Qwen3-4B",
+      "util": 0.9,
+      "max_model_len": 4096,
+      "weights_gib": 7.56,
+      "consumed_gib": 8.11,
+      "activation_gib": 0.6,
+      "cudagraph_gib": 0.0,
+      "free_mem_gib": 15.86,
+      "total_mem_gib": 15.92,
+      "target_gib": 14.33,
+      "kv_available_gib": 5.62,
+      "kv_in_use_gib": 5.62,
+      "kv_tokens": 40928,
+      "max_concurrency": 9.99,
+      "raw": [
+        "(EngineCore pid=702) INFO 11-05 07:30:37 [weight_utils.py:863] Filesystem type for checkpoints: NFS4. Checkpoint size: 7.49 GiB. Available RAM: 51.17 GiB.",
+        "(EngineCore pid=702) INFO 11-05 07:30:45 [model_runner.py:404] Model loading took 7.56 GiB memory and 8.365806 seconds",
+        "(EngineCore pid=702) INFO 11-05 07:30:45 [utils.py:306] Using LHBNC KV cache layout.",
+        "(EngineCore pid=702) INFO 11-05 07:30:48 [gpu_worker.py:625] Available KV cache memory: 5.62 GiB",
+        "(EngineCore pid=702) INFO 11-05 07:30:48 [kv_cache_utils.py:2032] GPU KV cache size: 40,928 tokens, Maximum concurrency for 4,096 tokens per request: 9.99x",
+        "(EngineCore pid=702) INFO 11-05 07:30:48 [gpu_worker.py:860] Free memory on device (15.86/15.92 GiB) on startup. Desired GPU memory utilization is (0.9, 14.33 GiB). Actual usage is 8.11 GiB for consumed memory (weights +",
+        "(EngineCore pid=702) INFO 11-05 07:30:51 [core.py:368] init engine (profile, create kv cache, warmup model) took 5.89 s"
+      ],
+      "non_weight_gib": 0.55,
+      "num_blocks": null,
+      "block_size": null,
+      "init_seconds": 36.0,
+      "mem_after_start": {
+        "total_gib": 15.922,
+        "used_gib": 14.3311,
+        "source": "amdsmi",
+        "allocated_gib": 0.0,
+        "reserved_gib": 0.0
+      }
+    },
+    "qwen3_4b_u090_s8192": {
+      "model": "/mnt/public/models/Qwen3-4B",
+      "util": 0.9,
+      "max_model_len": 8192,
+      "weights_gib": 7.56,
+      "consumed_gib": 8.11,
+      "activation_gib": 0.6,
+      "cudagraph_gib": 0.0,
+      "free_mem_gib": 15.86,
+      "total_mem_gib": 15.92,
+      "target_gib": 14.33,
+      "kv_available_gib": 5.62,
+      "kv_in_use_gib": 5.62,
+      "kv_tokens": 40928,
+      "max_concurrency": 5.0,
+      "raw": [
+        "(EngineCore pid=861) INFO 11-05 07:31:16 [weight_utils.py:863] Filesystem type for checkpoints: NFS4. Checkpoint size: 7.49 GiB. Available RAM: 51.06 GiB.",
+        "(EngineCore pid=861) INFO 11-05 07:31:23 [model_runner.py:404] Model loading took 7.56 GiB memory and 8.536420 seconds",
+        "(EngineCore pid=861) INFO 11-05 07:31:23 [utils.py:306] Using LHBNC KV cache layout.",
+        "(EngineCore pid=861) INFO 11-05 07:31:26 [gpu_worker.py:625] Available KV cache memory: 5.62 GiB",
+        "(EngineCore pid=861) INFO 11-05 07:31:26 [kv_cache_utils.py:2032] GPU KV cache size: 40,928 tokens, Maximum concurrency for 8,192 tokens per request: 5.00x",
+        "(EngineCore pid=861) INFO 11-05 07:31:26 [gpu_worker.py:860] Free memory on device (15.86/15.92 GiB) on startup. Desired GPU memory utilization is (0.9, 14.33 GiB). Actual usage is 8.11 GiB for consumed memory (weights +",
+        "(EngineCore pid=861) INFO 11-05 07:31:29 [core.py:368] init engine (profile, create kv cache, warmup model) took 5.82 s"
+      ],
+      "non_weight_gib": 0.55,
+      "num_blocks": null,
+      "block_size": null,
+      "init_seconds": 36.1,
+      "mem_after_start": {
+        "total_gib": 15.922,
+        "used_gib": 14.3311,
+        "source": "amdsmi",
+        "allocated_gib": 0.0,
+        "reserved_gib": 0.0
+      }
+    },
+    "qwen3_4b_u090_s16384": {
+      "model": "/mnt/public/models/Qwen3-4B",
+      "util": 0.9,
+      "max_model_len": 16384,
+      "weights_gib": 7.56,
+      "consumed_gib": 8.11,
+      "activation_gib": 0.6,
+      "cudagraph_gib": 0.0,
+      "free_mem_gib": 15.86,
+      "total_mem_gib": 15.92,
+      "target_gib": 14.33,
+      "kv_available_gib": 5.62,
+      "kv_in_use_gib": 5.62,
+      "kv_tokens": 40928,
+      "max_concurrency": 2.5,
+      "raw": [
+        "(EngineCore pid=1030) INFO 11-05 07:32:55 [weight_utils.py:863] Filesystem type for checkpoints: NFS4. Checkpoint size: 7.49 GiB. Available RAM: 50.79 GiB.",
+        "(EngineCore pid=1030) INFO 11-05 07:33:03 [model_runner.py:404] Model loading took 7.56 GiB memory and 8.602297 seconds",
+        "(EngineCore pid=1030) INFO 11-05 07:33:03 [utils.py:306] Using LHBNC KV cache layout.",
+        "(EngineCore pid=1030) INFO 11-05 07:33:06 [gpu_worker.py:625] Available KV cache memory: 5.62 GiB",
+        "(EngineCore pid=1030) INFO 11-05 07:33:06 [kv_cache_utils.py:2032] GPU KV cache size: 40,928 tokens, Maximum concurrency for 16,384 tokens per request: 2.50x",
+        "(EngineCore pid=1030) INFO 11-05 07:33:06 [gpu_worker.py:860] Free memory on device (15.86/15.92 GiB) on startup. Desired GPU memory utilization is (0.9, 14.33 GiB). Actual usage is 8.11 GiB for consumed memory (weights ",
+        "(EngineCore pid=1030) INFO 11-05 07:33:09 [core.py:368] init engine (profile, create kv cache, warmup model) took 5.87 s"
+      ],
+      "non_weight_gib": 0.55,
+      "num_blocks": null,
+      "block_size": null,
+      "init_seconds": 36.3,
+      "mem_after_start": {
+        "total_gib": 15.922,
+        "used_gib": 14.3311,
+        "source": "amdsmi",
+        "allocated_gib": 0.0,
+        "reserved_gib": 0.0
+      }
+    },
+    "qwen3_1p7b_u090_s8192": {
+      "model": "/mnt/public/models/Qwen3-1.7B",
+      "util": 0.9,
+      "max_model_len": 8192,
+      "weights_gib": 3.22,
+      "consumed_gib": 3.81,
+      "activation_gib": 0.41,
+      "cudagraph_gib": 0.0,
+      "free_mem_gib": 15.86,
+      "total_mem_gib": 15.92,
+      "target_gib": 14.33,
+      "kv_available_gib": 10.11,
+      "kv_in_use_gib": 10.11,
+      "kv_tokens": 94640,
+      "max_concurrency": 11.55,
+      "raw": [
+        "(EngineCore pid=1189) INFO 11-05 07:33:34 [weight_utils.py:863] Filesystem type for checkpoints: NFS4. Checkpoint size: 3.78 GiB. Available RAM: 50.76 GiB.",
+        "(EngineCore pid=1189) INFO 11-05 07:33:40 [model_runner.py:404] Model loading took 3.22 GiB memory and 6.006141 seconds",
+        "(EngineCore pid=1189) INFO 11-05 07:33:40 [utils.py:306] Using LHBNC KV cache layout.",
+        "(EngineCore pid=1189) INFO 11-05 07:33:43 [gpu_worker.py:625] Available KV cache memory: 10.11 GiB",
+        "(EngineCore pid=1189) INFO 11-05 07:33:43 [kv_cache_utils.py:2032] GPU KV cache size: 94,640 tokens, Maximum concurrency for 8,192 tokens per request: 11.55x",
+        "(EngineCore pid=1189) INFO 11-05 07:33:43 [gpu_worker.py:860] Free memory on device (15.86/15.92 GiB) on startup. Desired GPU memory utilization is (0.9, 14.33 GiB). Actual usage is 3.81 GiB for consumed memory (weights ",
+        "(EngineCore pid=1189) INFO 11-05 07:33:50 [core.py:368] init engine (profile, create kv cache, warmup model) took 10.63 s"
+      ],
+      "non_weight_gib": 0.59,
+      "num_blocks": null,
+      "block_size": null,
+      "init_seconds": 39.9,
+      "mem_after_start": {
+        "total_gib": 15.922,
+        "used_gib": 14.4805,
+        "source": "amdsmi",
+        "allocated_gib": 0.0,
+        "reserved_gib": 0.0
+      }
+    }
+  },
+  "stress": [
+    {
+      "n_req": 2,
+      "in_len": 4096,
+      "out_len": 256,
+      "wall_s": 9.55,
+      "preemptions": 0,
+      "out_tokens": {
+        "min": 256,
+        "max": 256
+      },
+      "tok_s_agg": 53.6
+    },
+    {
+      "n_req": 4,
+      "in_len": 4096,
+      "out_len": 256,
+      "wall_s": 10.59,
+      "preemptions": 0,
+      "out_tokens": {
+        "min": 256,
+        "max": 256
+      },
+      "tok_s_agg": 96.7
+    },
+    {
+      "n_req": 8,
+      "in_len": 4096,
+      "out_len": 256,
+      "wall_s": 13.75,
+      "preemptions": 0,
+      "out_tokens": {
+        "min": 81,
+        "max": 256
+      },
+      "tok_s_agg": 131.1
+    },
+    {
+      "n_req": 16,
+      "in_len": 4096,
+      "out_len": 256,
+      "wall_s": 27.31,
+      "preemptions": 0,
+      "out_tokens": {
+        "min": 81,
+        "max": 256
+      },
+      "tok_s_agg": 142.3
+    }
+  ]
+}

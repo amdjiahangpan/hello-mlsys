@@ -1,0 +1,331 @@
+{
+  "generated_at": "2026-11-05T04:48:10Z",
+  "usage": "python3 mem_ledger.py [--model 4B] [--card 9070xt] [--util 0.9] [--overhead 0.5] [--kv-dtype bf16]",
+  "dt_bytes": {
+    "bf16": 2,
+    "fp16": 2,
+    "fp8": 1,
+    "int4": 0.5
+  },
+  "cards": {
+    "9070xt": {
+      "vram_gib": 15.9,
+      "confirmed": true,
+      "util": 0.9,
+      "overhead_gib": 0.5,
+      "ledger": {
+        "0.6B": {
+          "params_m": 596.1,
+          "weight_detail": {
+            "embed_tokens": 155.58,
+            "per_layer_total": 15.73,
+            "n_layers": 0.0,
+            "attention_total": 176.16,
+            "mlp_total": 264.24,
+            "norms_total": 0.14,
+            "final_norm": 0.0,
+            "total": 596.13,
+            "per_layer_m": {
+              "q_proj": 2.097,
+              "k_proj": 1.049,
+              "v_proj": 1.049,
+              "o_proj": 2.097,
+              "gate_up_down": 9.437,
+              "q_norm": 0.002,
+              "k_norm": 0.001,
+              "layernorms": 0.002
+            }
+          },
+          "weights_gib": 1.11,
+          "kv_per_token_kib": 112.0,
+          "kv_per_token_gib": 0.000107,
+          "overhead_gib": 0.5,
+          "util": 0.9,
+          "m_avail_gib": 12.7,
+          "total_tokens": 118897,
+          "s_max_by_batch": {
+            "1": 118897,
+            "2": 59448,
+            "4": 29724,
+            "8": 14862,
+            "16": 7431
+          },
+          "b_max_by_ctx": {
+            "2048": 58,
+            "4096": 29,
+            "8192": 14,
+            "16384": 7,
+            "32768": 3
+          }
+        },
+        "1.7B": {
+          "params_m": 1720.7,
+          "weight_detail": {
+            "embed_tokens": 311.16,
+            "per_layer_total": 50.34,
+            "n_layers": 0.0,
+            "attention_total": 352.32,
+            "mlp_total": 1056.96,
+            "norms_total": 0.2,
+            "final_norm": 0.0,
+            "total": 1720.65,
+            "per_layer_m": {
+              "q_proj": 4.194,
+              "k_proj": 2.097,
+              "v_proj": 2.097,
+              "o_proj": 4.194,
+              "gate_up_down": 37.749,
+              "q_norm": 0.002,
+              "k_norm": 0.001,
+              "layernorms": 0.004
+            }
+          },
+          "weights_gib": 3.205,
+          "kv_per_token_kib": 112.0,
+          "kv_per_token_gib": 0.000107,
+          "overhead_gib": 0.5,
+          "util": 0.9,
+          "m_avail_gib": 10.605,
+          "total_tokens": 99287,
+          "s_max_by_batch": {
+            "1": 99287,
+            "2": 49643,
+            "4": 24821,
+            "8": 12410,
+            "16": 6205
+          },
+          "b_max_by_ctx": {
+            "2048": 48,
+            "4096": 24,
+            "8192": 12,
+            "16384": 6,
+            "32768": 3
+          }
+        },
+        "4B": {
+          "params_m": 4022.6,
+          "weight_detail": {
+            "embed_tokens": 388.96,
+            "per_layer_total": 100.94,
+            "n_layers": 0.0,
+            "attention_total": 943.72,
+            "mlp_total": 2689.6,
+            "norms_total": 0.37,
+            "final_norm": 0.0,
+            "total": 4022.64,
+            "per_layer_m": {
+              "q_proj": 10.486,
+              "k_proj": 2.621,
+              "v_proj": 2.621,
+              "o_proj": 10.486,
+              "gate_up_down": 74.711,
+              "q_norm": 0.004,
+              "k_norm": 0.001,
+              "layernorms": 0.005
+            }
+          },
+          "weights_gib": 7.493,
+          "kv_per_token_kib": 144.0,
+          "kv_per_token_gib": 0.000137,
+          "overhead_gib": 0.5,
+          "util": 0.9,
+          "m_avail_gib": 6.317,
+          "total_tokens": 46000,
+          "s_max_by_batch": {
+            "1": 46000,
+            "2": 23000,
+            "4": 11500,
+            "8": 5750,
+            "16": 2875
+          },
+          "b_max_by_ctx": {
+            "2048": 22,
+            "4096": 11,
+            "8192": 5,
+            "16384": 2,
+            "32768": 1
+          }
+        }
+      }
+    },
+    "w7900d": {
+      "vram_gib": 48,
+      "confirmed": false,
+      "note": "参数待确认（TODO 嘉航），本章仅用 48 GB 容量占位",
+      "util": 0.9,
+      "overhead_gib": 0.5,
+      "ledger": {
+        "0.6B": {
+          "params_m": 596.1,
+          "weight_detail": {
+            "embed_tokens": 155.58,
+            "per_layer_total": 15.73,
+            "n_layers": 0.0,
+            "attention_total": 176.16,
+            "mlp_total": 264.24,
+            "norms_total": 0.14,
+            "final_norm": 0.0,
+            "total": 596.13,
+            "per_layer_m": {
+              "q_proj": 2.097,
+              "k_proj": 1.049,
+              "v_proj": 1.049,
+              "o_proj": 2.097,
+              "gate_up_down": 9.437,
+              "q_norm": 0.002,
+              "k_norm": 0.001,
+              "layernorms": 0.002
+            }
+          },
+          "weights_gib": 1.11,
+          "kv_per_token_kib": 112.0,
+          "kv_per_token_gib": 0.000107,
+          "overhead_gib": 0.5,
+          "util": 0.9,
+          "m_avail_gib": 41.59,
+          "total_tokens": 389373,
+          "s_max_by_batch": {
+            "1": 389373,
+            "2": 194686,
+            "4": 97343,
+            "8": 48671,
+            "16": 24335
+          },
+          "b_max_by_ctx": {
+            "2048": 190,
+            "4096": 95,
+            "8192": 47,
+            "16384": 23,
+            "32768": 11
+          }
+        },
+        "1.7B": {
+          "params_m": 1720.7,
+          "weight_detail": {
+            "embed_tokens": 311.16,
+            "per_layer_total": 50.34,
+            "n_layers": 0.0,
+            "attention_total": 352.32,
+            "mlp_total": 1056.96,
+            "norms_total": 0.2,
+            "final_norm": 0.0,
+            "total": 1720.65,
+            "per_layer_m": {
+              "q_proj": 4.194,
+              "k_proj": 2.097,
+              "v_proj": 2.097,
+              "o_proj": 4.194,
+              "gate_up_down": 37.749,
+              "q_norm": 0.002,
+              "k_norm": 0.001,
+              "layernorms": 0.004
+            }
+          },
+          "weights_gib": 3.205,
+          "kv_per_token_kib": 112.0,
+          "kv_per_token_gib": 0.000107,
+          "overhead_gib": 0.5,
+          "util": 0.9,
+          "m_avail_gib": 39.495,
+          "total_tokens": 369763,
+          "s_max_by_batch": {
+            "1": 369763,
+            "2": 184881,
+            "4": 92440,
+            "8": 46220,
+            "16": 23110
+          },
+          "b_max_by_ctx": {
+            "2048": 180,
+            "4096": 90,
+            "8192": 45,
+            "16384": 22,
+            "32768": 11
+          }
+        },
+        "4B": {
+          "params_m": 4022.6,
+          "weight_detail": {
+            "embed_tokens": 388.96,
+            "per_layer_total": 100.94,
+            "n_layers": 0.0,
+            "attention_total": 943.72,
+            "mlp_total": 2689.6,
+            "norms_total": 0.37,
+            "final_norm": 0.0,
+            "total": 4022.64,
+            "per_layer_m": {
+              "q_proj": 10.486,
+              "k_proj": 2.621,
+              "v_proj": 2.621,
+              "o_proj": 10.486,
+              "gate_up_down": 74.711,
+              "q_norm": 0.004,
+              "k_norm": 0.001,
+              "layernorms": 0.005
+            }
+          },
+          "weights_gib": 7.493,
+          "kv_per_token_kib": 144.0,
+          "kv_per_token_gib": 0.000137,
+          "overhead_gib": 0.5,
+          "util": 0.9,
+          "m_avail_gib": 35.207,
+          "total_tokens": 256371,
+          "s_max_by_batch": {
+            "1": 256371,
+            "2": 128185,
+            "4": 64092,
+            "8": 32046,
+            "16": 16023
+          },
+          "b_max_by_ctx": {
+            "2048": 125,
+            "4096": 62,
+            "8192": 31,
+            "16384": 15,
+            "32768": 7
+          }
+        }
+      }
+    }
+  },
+  "models": {
+    "0.6B": {
+      "name": "Qwen3-0.6B",
+      "path": "/mnt/public/models/Qwen3-0.6B",
+      "n_layers": 28,
+      "hidden": 1024,
+      "n_q_heads": 16,
+      "n_kv_heads": 8,
+      "head_dim": 128,
+      "inter": 3072,
+      "vocab": 151936,
+      "tie_weights": true
+    },
+    "1.7B": {
+      "name": "Qwen3-1.7B",
+      "path": "/mnt/public/models/Qwen3-1.7B",
+      "n_layers": 28,
+      "hidden": 2048,
+      "n_q_heads": 16,
+      "n_kv_heads": 8,
+      "head_dim": 128,
+      "inter": 6144,
+      "vocab": 151936,
+      "tie_weights": true
+    },
+    "4B": {
+      "name": "Qwen3-4B",
+      "path": "/mnt/public/models/Qwen3-4B",
+      "n_layers": 36,
+      "hidden": 2560,
+      "n_q_heads": 32,
+      "n_kv_heads": 8,
+      "head_dim": 128,
+      "inter": 9728,
+      "vocab": 151936,
+      "tie_weights": true
+    }
+  }
+}

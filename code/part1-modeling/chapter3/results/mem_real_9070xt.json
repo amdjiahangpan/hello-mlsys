@@ -1,0 +1,161 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-11-05T06:05:52",
+    "python": "3.13.11",
+    "torch": "2.16.0.dev20261019+rocm10.1",
+    "rocm": "7.16.26385",
+    "os": "Linux-6.14.0-37-generic-x86_64-with-glibc2.41",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "gpu_arch": {
+      "AMD Radeon RX 7900 XTX": "gfx1100",
+      "AMD Radeon RX 9070 XT": "gfx1201"
+    },
+    "vram_gib": 15.9,
+    "driver": "6.16.13"
+  },
+  "measured_at": "2026-11-05T07:35:21Z",
+  "a_baseline": {
+    "idle_rocm_smi": {
+      "total_b": 17095983104,
+      "used_b": 59973632,
+      "total_gib": 15.922,
+      "used_gib": 0.0559
+    },
+    "torch_context": {
+      "total_b": 17095983104,
+      "used_b": 270512128,
+      "total_gib": 15.922,
+      "used_gib": 0.2519,
+      "allocated_gib": 0.0,
+      "reserved_gib": 0.002
+    },
+    "context_overhead_gib": 0.196
+  },
+  "b_weights": {
+    "0.6B": {
+      "cfg": {
+        "name": "Qwen3-0.6B",
+        "path": "/mnt/public/models/Qwen3-0.6B",
+        "n_layers": 28,
+        "hidden": 1024,
+        "n_q_heads": 16,
+        "n_kv_heads": 8,
+        "head_dim": 128,
+        "inter": 3072,
+        "vocab": 151936,
+        "tie_weights": true
+      },
+      "params_formula_m": 596.1,
+      "params_actual_m": 596.0,
+      "formula_gib": 1.1102,
+      "torch_allocated_gib": 1.1102,
+      "torch_reserved_gib": 1.1328,
+      "rocm_smi_used_gib": 1.385,
+      "rocm_smi_delta_gib": 1.1331
+    },
+    "1.7B": {
+      "cfg": {
+        "name": "Qwen3-1.7B",
+        "path": "/mnt/public/models/Qwen3-1.7B",
+        "n_layers": 28,
+        "hidden": 2048,
+        "n_q_heads": 16,
+        "n_kv_heads": 8,
+        "head_dim": 128,
+        "inter": 6144,
+        "vocab": 151936,
+        "tie_weights": true
+      },
+      "params_formula_m": 1720.7,
+      "params_actual_m": 1720.6,
+      "formula_gib": 3.2048,
+      "torch_allocated_gib": 3.2053,
+      "torch_reserved_gib": 4.3262,
+      "rocm_smi_used_gib": 4.5831,
+      "rocm_smi_delta_gib": 3.1981
+    },
+    "4B": {
+      "cfg": {
+        "name": "Qwen3-4B",
+        "path": "/mnt/public/models/Qwen3-4B",
+        "n_layers": 36,
+        "hidden": 2560,
+        "n_q_heads": 32,
+        "n_kv_heads": 8,
+        "head_dim": 128,
+        "inter": 9728,
+        "vocab": 151936,
+        "tie_weights": true
+      },
+      "params_formula_m": 4022.6,
+      "params_actual_m": 4022.5,
+      "formula_gib": 7.4924,
+      "torch_allocated_gib": 7.5473,
+      "torch_reserved_gib": 10.7598,
+      "rocm_smi_used_gib": 11.0194,
+      "rocm_smi_delta_gib": 7.5281
+    }
+  },
+  "c_kv_growth": {
+    "1.7B": [
+      {
+        "s": 2048,
+        "expect_cum_bytes": 234881024,
+        "expect_cum_gib": 0.2188,
+        "torch_delta_gib": 0.2188,
+        "rocm_smi_delta_gib": 0.2188,
+        "kiB_per_token": 112.0
+      },
+      {
+        "s": 4096,
+        "expect_cum_bytes": 704643072,
+        "expect_cum_gib": 0.6562,
+        "torch_delta_gib": 0.6562,
+        "rocm_smi_delta_gib": 0.6562,
+        "kiB_per_token": 112.0
+      },
+      {
+        "s": 8192,
+        "expect_cum_bytes": 1644167168,
+        "expect_cum_gib": 1.5312,
+        "torch_delta_gib": 1.5312,
+        "rocm_smi_delta_gib": 1.5311,
+        "kiB_per_token": 112.0
+      }
+    ],
+    "4B": [
+      {
+        "s": 4096,
+        "expect_cum_bytes": 603979776,
+        "expect_cum_gib": 0.5625,
+        "torch_delta_gib": 0.5625,
+        "rocm_smi_delta_gib": 0.5625,
+        "kiB_per_token": 144.0
+      },
+      {
+        "s": 8192,
+        "expect_cum_bytes": 1811939328,
+        "expect_cum_gib": 1.6875,
+        "torch_delta_gib": 1.6875,
+        "rocm_smi_delta_gib": 1.6874,
+        "kiB_per_token": 144.0
+      }
+    ]
+  },
+  "d_prefill_peak": {
+    "model": "1.7B",
+    "s": 4096,
+    "peak_allocated_gib": 4.8968,
+    "steady_allocated_gib": 3.6428,
+    "weights_gib": 3.2053,
+    "kv_steady_gib": 0.4375,
+    "activation_spike_gib": 1.2539,
+    "kv_expect_gib": 0.4375
+  },
+  "e_fragmentation": {
+    "allocated_gib": 0.0,
+    "reserved_gib": 0.1484,
+    "reserved_minus_allocated_gib": 0.1484,
+    "rocm_smi_used_gib": 0.2043
+  }
+}
