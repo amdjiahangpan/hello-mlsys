@@ -1,0 +1,88 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-11-05T04:18:30",
+    "python": "3.13.11",
+    "torch": "2.16.0.dev20261019+rocm10.1",
+    "rocm": "7.16.26385",
+    "os": "Linux-6.14.0-37-generic-x86_64-with-glibc2.41",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "gpu_arch": {
+      "AMD Radeon RX 7900 XTX": "gfx1100",
+      "AMD Radeon RX 9070 XT": "gfx1201"
+    },
+    "vram_gib": 15.9,
+    "driver": "6.16.13"
+  },
+  "idle_sample": {
+    "temp_c": 35.0,
+    "power_w": 12.0,
+    "sclk_mhz": 21,
+    "fclk_mhz": 582
+  },
+  "nominal_constants": {
+    "peak_bf16_tflops": 195.0,
+    "bw_gbps": 640.0,
+    "ai_ridge": 304.7
+  },
+  "checks": {
+    "gpu": {
+      "ok": true,
+      "name": "AMD Radeon RX 9070 XT",
+      "vram_gib": 15.9
+    },
+    "software": {
+      "ok": true,
+      "python": "3.13.11",
+      "torch": "2.16.0.dev20261019+rocm10.1",
+      "rocm": "7.16.26385",
+      "driver": "6.16.13"
+    },
+    "profiler_tool": {
+      "found": true,
+      "version": "3.8.0 (release)",
+      "profile_mode_supported": false,
+      "note": "本机架构 ['gfx1100', 'gfx1201'] 不在 rocprof-compute 3.8.0 支持列表 ['gfx908', 'gfx90a', 'gfx940', 'gfx941', 'gfx942', 'gfx950', 'gfx1150', 'gfx1151', 'gfx1152', 'gfx1153'] 内 → profile 模式不可用，改用 torch.profiler（HIP activity）+ rocm-smi 采样",
+      "gpu_archs": [
+        "gfx1100",
+        "gfx1201"
+      ]
+    },
+    "profiler_tool_v3": {
+      "found": true,
+      "version": "1.4.1",
+      "kernel_trace": true,
+      "note": "kernel-trace 在 gfx1201 可用（§2.2 头对头验证）；--pmc 深计数器受 AUTO 性能档门控（ROCm PR #7455），需强制固定性能档"
+    },
+    "rocprof_sys_present": false,
+    "torch_profiler": "跨架构兜底（HIP activity），用于进程内 e2e profile（§2.6）",
+    "sdpa_backends": {
+      "mha16": {
+        "FLASH_ATTENTION": true,
+        "EFFICIENT_ATTENTION": true,
+        "CUDNN_ATTENTION": false,
+        "MATH": true
+      },
+      "gqa16_8": {
+        "FLASH_ATTENTION": true,
+        "EFFICIENT_ATTENTION": false,
+        "CUDNN_ATTENTION": false,
+        "MATH": true
+      }
+    },
+    "model_1_7b": {
+      "model": "/mnt/public/models/Qwen3-1.7B",
+      "load_ok": true,
+      "prefill_fwd_ok": true,
+      "decode_step_ok": true,
+      "n_layers": 28,
+      "hidden": 2048,
+      "inter": 6144,
+      "n_q_heads": 16,
+      "n_kv_heads": 8,
+      "head_dim": 128,
+      "vocab": 151936,
+      "tie_weights": true
+    }
+  },
+  "all_ok": true
+}

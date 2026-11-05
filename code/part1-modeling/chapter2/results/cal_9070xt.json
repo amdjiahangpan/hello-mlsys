@@ -1,0 +1,335 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-11-04T13:51:21",
+    "python": "3.13.11",
+    "torch": "2.16.0.dev20261019+rocm10.1",
+    "rocm": "7.16.26385",
+    "os": "Linux-6.14.0-37-generic-x86_64-with-glibc2.41",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "gpu_arch": {
+      "AMD Radeon RX 7900 XTX": "gfx1100",
+      "AMD Radeon RX 9070 XT": "gfx1201"
+    },
+    "vram_gib": 15.9,
+    "driver": "6.16.13"
+  },
+  "config": {
+    "seed": 42,
+    "protocol": "warmup10 x 50 x 3, event+sync"
+  },
+  "nominal_constants": {
+    "peak_tflops": 195.0,
+    "bw_gbps": 640.0,
+    "ridge": 304.7
+  },
+  "calibration": {
+    "gemm": {
+      "2048^3": {
+        "flops": 17179869184,
+        "bytes": 25165824,
+        "ai": 682.7,
+        "t_comp_ms": 0.0881,
+        "t_mem_ms": 0.03932,
+        "t_nom_ms": 0.0881,
+        "binding": "compute",
+        "median_ms": 0.18172,
+        "per_round_ms": [
+          0.17942,
+          0.18172,
+          0.19552
+        ],
+        "ratio_meas_over_nom": 2.063,
+        "fit": false,
+        "eta_point": 0.4848
+      },
+      "4096^3": {
+        "flops": 137438953472,
+        "bytes": 100663296,
+        "ai": 1365.3,
+        "t_comp_ms": 0.70482,
+        "t_mem_ms": 0.15729,
+        "t_nom_ms": 0.70482,
+        "binding": "compute",
+        "median_ms": 1.06675,
+        "per_round_ms": [
+          1.0656,
+          1.06675,
+          1.08165
+        ],
+        "ratio_meas_over_nom": 1.514,
+        "fit": true,
+        "eta_point": 0.6607
+      },
+      "5120^3": {
+        "flops": 268435456000,
+        "bytes": 157286400,
+        "ai": 1706.7,
+        "t_comp_ms": 1.37659,
+        "t_mem_ms": 0.24576,
+        "t_nom_ms": 1.37659,
+        "binding": "compute",
+        "median_ms": 2.26705,
+        "per_round_ms": [
+          2.26122,
+          2.26705,
+          2.27607
+        ],
+        "ratio_meas_over_nom": 1.647,
+        "fit": true,
+        "eta_point": 0.6072
+      },
+      "8192^3": {
+        "flops": 1099511627776,
+        "bytes": 402653184,
+        "ai": 2730.7,
+        "t_comp_ms": 5.63852,
+        "t_mem_ms": 0.62915,
+        "t_nom_ms": 5.63852,
+        "binding": "compute",
+        "median_ms": 11.92142,
+        "per_round_ms": [
+          11.90789,
+          11.92142,
+          11.92191
+        ],
+        "ratio_meas_over_nom": 2.114,
+        "fit": false,
+        "eta_point": 0.473
+      }
+    },
+    "ln": {
+      "2048x1024": {
+        "flops": 8388608,
+        "bytes": 8388608,
+        "ai": 1.0,
+        "t_comp_ms": 4e-05,
+        "t_mem_ms": 0.01311,
+        "t_nom_ms": 0.01311,
+        "binding": "memory",
+        "median_ms": 0.0268,
+        "per_round_ms": [
+          0.02676,
+          0.0268,
+          0.02692
+        ],
+        "ratio_meas_over_nom": 2.045,
+        "fit": false,
+        "beta_point": 0.4891
+      },
+      "8192x4096": {
+        "flops": 134217728,
+        "bytes": 134217728,
+        "ai": 1.0,
+        "t_comp_ms": 0.00069,
+        "t_mem_ms": 0.20972,
+        "t_nom_ms": 0.20972,
+        "binding": "memory",
+        "median_ms": 0.23312,
+        "per_round_ms": [
+          0.2318,
+          0.23312,
+          0.2336
+        ],
+        "ratio_meas_over_nom": 1.112,
+        "fit": true,
+        "beta_point": 0.8996
+      }
+    },
+    "softmax": {
+      "4096x4096": {
+        "flops": 67108864,
+        "bytes": 67108864,
+        "ai": 1.0,
+        "t_comp_ms": 0.00034,
+        "t_mem_ms": 0.10486,
+        "t_nom_ms": 0.10486,
+        "binding": "memory",
+        "median_ms": 0.08028,
+        "per_round_ms": [
+          0.07896,
+          0.08028,
+          0.08276
+        ],
+        "ratio_meas_over_nom": 0.766,
+        "fit": false,
+        "beta_point": 1.3061
+      },
+      "8192x4096": {
+        "flops": 134217728,
+        "bytes": 134217728,
+        "ai": 1.0,
+        "t_comp_ms": 0.00069,
+        "t_mem_ms": 0.20972,
+        "t_nom_ms": 0.20972,
+        "binding": "memory",
+        "median_ms": 0.23012,
+        "per_round_ms": [
+          0.22988,
+          0.23012,
+          0.23152
+        ],
+        "ratio_meas_over_nom": 1.097,
+        "fit": true,
+        "beta_point": 0.9113
+      }
+    }
+  },
+  "fit": {
+    "stored_at": "2026-11-04T13:51:25Z",
+    "eta": 0.6243,
+    "beta": 0.9054,
+    "eta_formula": "eta = Σ t_comp / Σ t_meas（GEMM 4096³/5120，计算甜区两点）",
+    "beta_formula": "beta = Σ t_mem / Σ t_meas（LN 8192×4096 + Softmax 8192×4096，真流式两点）",
+    "fit_points": {
+      "eta": [
+        "4096^3",
+        "5120^3"
+      ],
+      "beta": [
+        "ln_8192x4096",
+        "softmax_8192x4096"
+      ]
+    },
+    "eta_points": {
+      "2048^3": 0.4848,
+      "4096^3": 0.6607,
+      "5120^3": 0.6072,
+      "8192^3": 0.473
+    },
+    "beta_points": {
+      "ln_2048x1024": 0.4891,
+      "ln_8192x4096": 0.8996,
+      "softmax_4096x4096": 1.3061,
+      "softmax_8192x4096": 0.9113
+    }
+  },
+  "holdout_prediction": {
+    "stored_at": "2026-11-04T13:51:25Z",
+    "predictions_ms": {
+      "gemm_6144": 3.81027,
+      "ln_16384x4096": 0.46325,
+      "softmax_16384x4096": 0.46325,
+      "attn_mha16_s512": {
+        "t_pred_cal_ms": 0.01448,
+        "binding_by_ai": "memory",
+        "ai": 256.0
+      },
+      "attn_mha16_s1024": {
+        "t_pred_cal_ms": 0.07056,
+        "binding_by_ai": "compute",
+        "ai": 512.0
+      }
+    }
+  },
+  "holdout_measured": {
+    "gemm_6144": {
+      "flops": 463856467968,
+      "bytes": 226492416,
+      "ai": 2048.0,
+      "t_comp_ms": 2.37875,
+      "t_mem_ms": 0.35389,
+      "t_nom_ms": 2.37875,
+      "binding": "compute",
+      "median_ms": 3.89212,
+      "per_round_ms": [
+        3.65236,
+        3.89212,
+        3.89475
+      ],
+      "ratio_meas_over_nom": 1.636,
+      "fit": false,
+      "eta_point": 0.6112,
+      "t_pred_cal_ms": 3.81027,
+      "pred_err_pct": 2.1
+    },
+    "ln_16384x4096": {
+      "flops": 268435456,
+      "bytes": 268435456,
+      "ai": 1.0,
+      "t_comp_ms": 0.00138,
+      "t_mem_ms": 0.41943,
+      "t_nom_ms": 0.41943,
+      "binding": "memory",
+      "median_ms": 0.45288,
+      "per_round_ms": [
+        0.45276,
+        0.45288,
+        0.45376
+      ],
+      "ratio_meas_over_nom": 1.08,
+      "fit": false,
+      "beta_point": 0.9261,
+      "t_pred_cal_ms": 0.46325,
+      "pred_err_pct": -2.2
+    },
+    "softmax_16384x4096": {
+      "flops": 268435456,
+      "bytes": 268435456,
+      "ai": 1.0,
+      "t_comp_ms": 0.00138,
+      "t_mem_ms": 0.41943,
+      "t_nom_ms": 0.41943,
+      "binding": "memory",
+      "median_ms": 0.44752,
+      "per_round_ms": [
+        0.44736,
+        0.44752,
+        0.44772
+      ],
+      "ratio_meas_over_nom": 1.067,
+      "fit": false,
+      "beta_point": 0.9372,
+      "t_pred_cal_ms": 0.46325,
+      "pred_err_pct": -3.4
+    },
+    "attn_mha16_s512": {
+      "flops": 2147483648,
+      "bytes": 8388608,
+      "ai": 256.0,
+      "t_comp_ms": 0.01101,
+      "t_mem_ms": 0.01311,
+      "t_nom_ms": 0.01311,
+      "binding": "memory",
+      "median_ms": 0.05272,
+      "per_round_ms": [
+        0.05256,
+        0.05272,
+        0.05276
+      ],
+      "ratio_meas_over_nom": 4.022,
+      "fit": false,
+      "achieved_tflops": 40.7,
+      "achieved_bw_gbps": 159.1,
+      "t_pred_cal_ms": 0.01448,
+      "pred_err_pct": 264.1
+    },
+    "attn_mha16_s1024": {
+      "flops": 8589934592,
+      "bytes": 16777216,
+      "ai": 512.0,
+      "t_comp_ms": 0.04405,
+      "t_mem_ms": 0.02621,
+      "t_nom_ms": 0.04405,
+      "binding": "compute",
+      "median_ms": 0.1218,
+      "per_round_ms": [
+        0.12144,
+        0.1218,
+        0.12224
+      ],
+      "ratio_meas_over_nom": 2.765,
+      "fit": false,
+      "achieved_tflops": 70.5,
+      "achieved_bw_gbps": 137.7,
+      "t_pred_cal_ms": 0.07056,
+      "pred_err_pct": 72.6
+    }
+  },
+  "holdout_err_pct": {
+    "gemm_6144": 2.1,
+    "ln_16384x4096": -2.2,
+    "softmax_16384x4096": -3.4,
+    "attn_mha16_s512": 264.1,
+    "attn_mha16_s1024": 72.6
+  }
+}

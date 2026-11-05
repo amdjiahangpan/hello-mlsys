@@ -1,0 +1,241 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-11-05T04:14:00",
+    "python": "3.13.11",
+    "torch": "2.16.0.dev20261019+rocm10.1",
+    "rocm": "7.16.26385",
+    "os": "Linux-6.14.0-37-generic-x86_64-with-glibc2.41",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "gpu_arch": {
+      "AMD Radeon RX 7900 XTX": "gfx1100",
+      "AMD Radeon RX 9070 XT": "gfx1201"
+    },
+    "vram_gib": 15.9,
+    "driver": "6.16.13"
+  },
+  "config": {
+    "model": "/mnt/public/models/Qwen3-1.7B",
+    "batch": 1,
+    "ctx": 1024,
+    "s_prefill": 512,
+    "seed": 42,
+    "model_cfg": {
+      "n_layers": 28,
+      "hidden": 2048,
+      "n_q_heads": 16,
+      "n_kv_heads": 8,
+      "head_dim": 128,
+      "inter": 6144,
+      "vocab": 151936,
+      "tie_weights": true
+    }
+  },
+  "calibration": {
+    "eta": 0.6243,
+    "beta": 0.9054,
+    "source": "/mnt/luyuzhou/hello-mlsys/hello-mlsys/code/part1-modeling/chapter2/results/cal_9070xt.json"
+  },
+  "profiler_overhead": {
+    "rocprofv3": "1.4.1",
+    "note": "膨胀系数 = 开 profiler 后的 per-step wall / 干净 wall（同协议、同 fresh cache、warmup 吸收区域冷启动）",
+    "rocprofv3_fullmodel_error": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/e2e_v3.json'"
+  },
+  "measured": {
+    "decode": {
+      "wall_ms": 30.116,
+      "per_round_ms": [
+        29.869,
+        30.116,
+        30.856
+      ],
+      "tok_s": 33.2,
+      "profile": {
+        "kernels": 1591.0,
+        "gpu_self_ms": 14.943,
+        "wall_inside_profile_ms": 57.616,
+        "gap_wall_minus_self_ms": 42.673,
+        "gpu_busy_fraction": 0.259,
+        "top_kernels": [
+          {
+            "name": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAB_SCD_SAV_UserArgs_MT64x64x64_MI16x16x",
+            "calls": 22560,
+            "gpu_ms": 1006.3531
+          },
+          {
+            "name": "flyc_attn_fwd.kd",
+            "calls": 4480,
+            "gpu_ms": 141.02245
+          },
+          {
+            "name": "void at::native::vectorized_elementwise_kernel<4, at::native::converting",
+            "calls": 18080,
+            "gpu_ms": 132.58688
+          },
+          {
+            "name": "void at::native::elementwise_kernel_manual_unroll<128, 4, at::native::gp",
+            "calls": 18080,
+            "gpu_ms": 124.552
+          },
+          {
+            "name": "void at::native::elementwise_kernel_manual_unroll<128, 8, at::native::gp",
+            "calls": 26880,
+            "gpu_ms": 123.62651
+          },
+          {
+            "name": "void at::native::(anonymous namespace)::CatArrayBatchedCopy_contig<at::n",
+            "calls": 8960,
+            "gpu_ms": 110.00317
+          },
+          {
+            "name": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAB_SCD_SAV_UserArgs_MT16x64x128_MI16x16",
+            "calls": 8960,
+            "gpu_ms": 105.16166
+          },
+          {
+            "name": "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::n",
+            "calls": 18080,
+            "gpu_ms": 100.76837
+          },
+          {
+            "name": "void at::native::vectorized_elementwise_kernel<4, at::native::(anonymous",
+            "calls": 18080,
+            "gpu_ms": 85.84147
+          },
+          {
+            "name": "void at::native::elementwise_kernel_manual_unroll<128, 8, at::native::gp",
+            "calls": 8960,
+            "gpu_ms": 85.17725
+          }
+        ]
+      },
+      "profiler_inflation": {
+        "torch_profiler": 1.913,
+        "rocprofv3": null
+      },
+      "gaps": {
+        "wall_minus_pred_ms": 23.362,
+        "launch_ms_samecond": 42.673,
+        "pred_vs_wall_err_pct": -77.6
+      }
+    },
+    "prefill": {
+      "wall_ms": 38.332,
+      "per_round_ms": [
+        38.203,
+        38.332,
+        38.433
+      ],
+      "tok_s": 13.0,
+      "profile": {
+        "kernels": 1617.0,
+        "gpu_self_ms": 36.402,
+        "wall_inside_profile_ms": 58.563,
+        "gap_wall_minus_self_ms": 22.161,
+        "gpu_busy_fraction": 0.622,
+        "top_kernels": [
+          {
+            "name": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAB_SCD_SAV_UserArgs_MT64x128x64_MI16x16",
+            "calls": 1881,
+            "gpu_ms": 287.48556
+          },
+          {
+            "name": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAB_SCD_SAV_UserArgs_MT256x256x32_MI16x1",
+            "calls": 2772,
+            "gpu_ms": 282.2228
+          },
+          {
+            "name": "void at::native::elementwise_kernel_manual_unroll<128, 8, at::native::gp",
+            "calls": 7425,
+            "gpu_ms": 159.42303
+          },
+          {
+            "name": "void at::native::(anonymous namespace)::CatArrayBatchedCopy<at::native::",
+            "calls": 3696,
+            "gpu_ms": 80.1357
+          },
+          {
+            "name": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAB_SCD_SAV_UserArgs_MT64x128x64_MI16x16",
+            "calls": 1848,
+            "gpu_ms": 72.15791
+          },
+          {
+            "name": "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::n",
+            "calls": 3729,
+            "gpu_ms": 52.33966
+          },
+          {
+            "name": "void at::native::elementwise_kernel_manual_unroll<128, 8, at::native::gp",
+            "calls": 1848,
+            "gpu_ms": 39.82853
+          },
+          {
+            "name": "void at::native::vectorized_elementwise_kernel<4, at::native::converting",
+            "calls": 3729,
+            "gpu_ms": 34.42251
+          },
+          {
+            "name": "void at::native::vectorized_elementwise_kernel<4, at::native::converting",
+            "calls": 3795,
+            "gpu_ms": 34.00427
+          },
+          {
+            "name": "void at::native::elementwise_kernel_manual_unroll<128, 4, at::native::gp",
+            "calls": 3729,
+            "gpu_ms": 32.05707
+          }
+        ]
+      },
+      "profiler_inflation": {
+        "torch_profiler": 1.528,
+        "rocprofv3": null
+      },
+      "gaps": {
+        "wall_minus_pred_ms": 23.367,
+        "launch_ms_samecond": 22.161,
+        "pred_vs_wall_err_pct": -61.0
+      }
+    }
+  },
+  "prediction": {
+    "decode": {
+      "total_ms": 6.7536,
+      "detail": {
+        "gemm": {
+          "binding": "memory",
+          "bytes": 3440902144,
+          "flops": 3440902144,
+          "t_pred_ms": 5.93816
+        },
+        "attn": {
+          "binding": "memory",
+          "bytes": 469762048,
+          "flops": 234881024,
+          "t_pred_ms": 0.81069
+        },
+        "norms": {
+          "binding": "memory",
+          "bytes": 2752512,
+          "t_pred_ms": 0.00475
+        }
+      }
+    },
+    "prefill": {
+      "total_ms": 14.96545,
+      "detail": {
+        "gemm": {
+          "binding": "compute",
+          "t_pred_ms": 14.47153,
+          "bytes": 4301127680,
+          "flops": 1761741897728
+        },
+        "attn": {
+          "binding": "memory",
+          "t_pred_ms": 0.49392,
+          "bytes": 234881024,
+          "flops": 60129542144
+        }
+      }
+    }
+  },
+  "measured_at": "2026-11-05T04:14:00Z"
+}

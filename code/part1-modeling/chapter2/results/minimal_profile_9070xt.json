@@ -1,0 +1,75 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-11-05T03:59:41",
+    "python": "3.13.11",
+    "torch": "2.16.0.dev20261019+rocm10.1",
+    "rocm": "7.16.26385",
+    "os": "Linux-6.14.0-37-generic-x86_64-with-glibc2.41",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "gpu_arch": {
+      "AMD Radeon RX 7900 XTX": "gfx1100",
+      "AMD Radeon RX 9070 XT": "gfx1201"
+    },
+    "vram_gib": 15.9,
+    "driver": "6.16.13"
+  },
+  "config": {
+    "op": "GEMM bf16",
+    "M": 4096,
+    "N": 4096,
+    "K": 4096,
+    "seed": 42,
+    "protocol": "warmup 10 + 50 x 3, event+sync, median"
+  },
+  "nominal": {
+    "flops": 137438953472,
+    "bytes": 100663296,
+    "ai": 1365.3,
+    "t_comp_ms": 0.70482,
+    "t_mem_ms": 0.15729
+  },
+  "A_event_sync_median_ms": 1.05409,
+  "B_cpu_enqueue_ms": 0.0253,
+  "C_rocprofv3": {
+    "tool": "1.4.1 (--kernel-trace, agent=gfx1201)",
+    "event_ms_inside": 1.06652,
+    "gpu_self_ms_per_iter": 1.03562,
+    "gemm_kernels_per_iter": 1.0,
+    "total_dispatches_in_db": 164,
+    "top_kernels": [
+      {
+        "name": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_L",
+        "calls": 160,
+        "gpu_ms": 165.41154
+      },
+      {
+        "name": "void at::native::(anonymous namespace)::distribution_elementwise_grid_st",
+        "calls": 2,
+        "gpu_ms": 0.2612
+      },
+      {
+        "name": "__amd_rocclr_fillBufferUnAligned",
+        "calls": 2,
+        "gpu_ms": 0.02684
+      }
+    ]
+  },
+  "D_torch_profiler": {
+    "kernels_total_in_profile": 160,
+    "gpu_self_ms_per_iter": 1.03184,
+    "event_ms_inside_profile": 1.07095,
+    "top_kernels": [
+      {
+        "name": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_L",
+        "calls": 160,
+        "gpu_ms": 165.09489
+      }
+    ]
+  },
+  "derived": {
+    "achieved_tflops": 130.4,
+    "achieved_bw_gbps": 95.5,
+    "rocprofv3_inflation": 1.012,
+    "torch_profiler_inflation": 1.016
+  }
+}
