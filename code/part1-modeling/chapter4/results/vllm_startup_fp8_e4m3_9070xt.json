@@ -1,0 +1,15 @@
+{
+  "weights_gib": 4.38,
+  "consumed_gib": 5.42,
+  "activation_gib": 0.09,
+  "cudagraph_gib": 0.0,
+  "free_mem_gib": 15.86,
+  "total_mem_gib": 15.92,
+  "target_gib": 14.33,
+  "kv_available_gib": 8.82,
+  "kv_tokens": 64208,
+  "non_weight_gib": 1.04,
+  "source_log": "vllm_startup_fp8_e4m3_9070xt.log",
+  "tag": "fp8_e4m3_9070xt",
+  "timestamp_utc": "2026-11-06T11:56:23Z"
+}

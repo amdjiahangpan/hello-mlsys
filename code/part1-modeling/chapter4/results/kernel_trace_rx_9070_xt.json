@@ -1,0 +1,965 @@
+{
+  "rx_9070_xt_f16_decode": {
+    "db": "results/_rocprof_rx_9070_xt_f16_decode/rx_9070_xt_f16_decode/host/57149_results.db",
+    "n_kernels": 21,
+    "gpu_total_ms": 2161.2,
+    "top": [
+      {
+        "name": "void mul_mat_vec_f<__half, float, 1, 256, true, false>(__half const*, float const*, int const*, ",
+        "calls": 4575,
+        "gpu_ms": 748.5056,
+        "pct": 34.63,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_f<__half, __half, 1, 256, true, false>(__half const*, float const*, int const*,",
+        "calls": 9020,
+        "gpu_ms": 668.0442,
+        "pct": 30.91,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_f<__half, __half, 1, 256, false, false>(__half const*, float const*, int const*",
+        "calls": 13973,
+        "gpu_ms": 594.4086,
+        "pct": 27.5,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_f<__half, __half, 2, 256, false, false>(__half const*, float const*, int const*",
+        "calls": 498,
+        "gpu_ms": 32.9056,
+        "pct": 1.52,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_tile<128, 128, 1, 4, false>(char const*, char const*, char const*, char const*, ",
+        "calls": 4572,
+        "gpu_ms": 24.5855,
+        "pct": 1.14,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_f32<1024, 1, true, true, false, false>(float const*, float*, int, int, int, long, ",
+        "calls": 9490,
+        "gpu_ms": 22.7783,
+        "pct": 1.05,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, __half>(float const*, __half*, int, int, int, long, long,",
+        "calls": 4680,
+        "gpu_ms": 14.1538,
+        "pct": 0.65,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, float>(float const*, float*, int, int, int, long, long, l",
+        "calls": 4680,
+        "gpu_ms": 12.3764,
+        "pct": 0.57,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_combine_results<128>(float const*, HIP_vector_type<float, 2u> const*, float*, in",
+        "calls": 4572,
+        "gpu_ms": 10.7682,
+        "pct": 0.5,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void k_set_rows<float, long, __half>(float const*, long const*, __half*, long, long, long, long,",
+        "calls": 4680,
+        "gpu_ms": 9.7366,
+        "pct": 0.45,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_f<__half2, 32, 9, 7, false>(__half2 const*, float const*, int const*, float*, int, ",
+        "calls": 178,
+        "gpu_ms": 8.6908,
+        "pct": 0.4,
+        "class": "norm_act"
+      },
+      {
+        "name": "void mul_mat_f<__half2, 32, 9, 8, false>(__half2 const*, float const*, int const*, float*, int, ",
+        "calls": 71,
+        "gpu_ms": 4.3574,
+        "pct": 0.2,
+        "class": "norm_act"
+      },
+      {
+        "name": "__amd_rocclr_copyBuffer",
+        "calls": 1306,
+        "gpu_ms": 4.2653,
+        "pct": 0.2,
+        "class": "other"
+      },
+      {
+        "name": "__amd_rocclr_fillBufferUnAligned",
+        "calls": 4,
+        "gpu_ms": 2.0866,
+        "pct": 0.1,
+        "class": "other"
+      },
+      {
+        "name": "void k_bin_bcast<&(op_add(float, float)), float, float, float, float const*>(float const*, float",
+        "calls": 340,
+        "gpu_ms": 0.8005,
+        "pct": 0.04,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_ext_f16<128, 128, 16, 4, false, false, false>(char const*, char const*, char con",
+        "calls": 36,
+        "gpu_ms": 0.6831,
+        "pct": 0.03,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_stream_k_fixup_uniform<128, 16, 4>(float*, HIP_vector_type<float, 2u> const*, in",
+        "calls": 36,
+        "gpu_ms": 0.6623,
+        "pct": 0.03,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void k_get_rows_float<float, float>(float const*, int const*, float*, long, long, HIP_vector_typ",
+        "calls": 260,
+        "gpu_ms": 0.5162,
+        "pct": 0.02,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_tile<128, 128, 2, 4, false>(char const*, char const*, char const*, char const*, ",
+        "calls": 72,
+        "gpu_ms": 0.4523,
+        "pct": 0.02,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void unary_gated_op_kernel<&(op_silu(float)), float>(float const*, float const*, float*, long, l",
+        "calls": 105,
+        "gpu_ms": 0.2368,
+        "pct": 0.01,
+        "class": "norm_act"
+      }
+    ],
+    "class_ms": {
+      "gemv_matmul": 2141.5674,
+      "norm_act": 13.285,
+      "other": 6.3519
+    },
+    "class_pct": {
+      "gemv_matmul": 99.09,
+      "norm_act": 0.61,
+      "other": 0.29
+    },
+    "phase": "decode",
+    "profile": "f16",
+    "gpu": "rx_9070_xt"
+  },
+  "rx_9070_xt_f16_prefill": {
+    "db": "results/_rocprof_rx_9070_xt_f16_prefill/rx_9070_xt_f16_prefill/host/57333_results.db",
+    "n_kernels": 27,
+    "gpu_total_ms": 113.62,
+    "top": [
+      {
+        "name": "void mul_mat_vec_f<__half, __half, 2, 256, false, false>(__half const*, float const*, int const*",
+        "calls": 498,
+        "gpu_ms": 33.2512,
+        "pct": 29.27,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "Cijk_Alik_Bljk_HSS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AG",
+        "calls": 70,
+        "gpu_ms": 15.8398,
+        "pct": 13.94,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_f<__half2, 32, 7, 7, false>(__half2 const*, float const*, int const*, float*, int, ",
+        "calls": 178,
+        "gpu_ms": 8.6526,
+        "pct": 7.62,
+        "class": "norm_act"
+      },
+      {
+        "name": "Cijk_Alik_Bljk_HSS_BH_HA_S_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFE",
+        "calls": 35,
+        "gpu_ms": 8.6366,
+        "pct": 7.6,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_ext_f16<128, 128, 16, 4, false, false, false>(char const*, char const*, char con",
+        "calls": 36,
+        "gpu_ms": 5.1685,
+        "pct": 4.55,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "Cijk_Alik_Bljk_HSS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AG0_AGGSUA0_AG",
+        "calls": 36,
+        "gpu_ms": 4.6135,
+        "pct": 4.06,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_f<__half2, 32, 7, 8, false>(__half2 const*, float const*, int const*, float*, int, ",
+        "calls": 71,
+        "gpu_ms": 4.3523,
+        "pct": 3.83,
+        "class": "norm_act"
+      },
+      {
+        "name": "Cijk_Alik_Bljk_HSS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AG0_AGGSUA0_AG",
+        "calls": 36,
+        "gpu_ms": 4.0348,
+        "pct": 3.55,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, float>(float const*, float*, int, int, int, long, long, l",
+        "calls": 144,
+        "gpu_ms": 3.9904,
+        "pct": 3.51,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_f<__half, __half, 1, 256, false, false>(__half const*, float const*, int const*",
+        "calls": 3,
+        "gpu_ms": 3.8027,
+        "pct": 3.35,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void unary_gated_op_kernel<&(op_silu(float)), float>(float const*, float const*, float*, long, l",
+        "calls": 140,
+        "gpu_ms": 3.0531,
+        "pct": 2.69,
+        "class": "norm_act"
+      },
+      {
+        "name": "void convert_unary_cont_vec4<float, __half>(void const*, __half*, long)",
+        "calls": 249,
+        "gpu_ms": 2.4612,
+        "pct": 2.17,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "Cijk_Alik_Bljk_HSS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNT",
+        "calls": 72,
+        "gpu_ms": 2.4433,
+        "pct": 2.15,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_f32<1024, 1, true, true, false, false>(float const*, float*, int, int, int, long, ",
+        "calls": 290,
+        "gpu_ms": 2.4422,
+        "pct": 2.15,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "__amd_rocclr_fillBufferUnAligned",
+        "calls": 6,
+        "gpu_ms": 2.1579,
+        "pct": 1.9,
+        "class": "other"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, __half>(float const*, __half*, int, int, int, long, long,",
+        "calls": 144,
+        "gpu_ms": 1.9934,
+        "pct": 1.75,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void k_bin_bcast<&(op_add(float, float)), float, float, float, float const*>(float const*, float",
+        "calls": 283,
+        "gpu_ms": 1.791,
+        "pct": 1.58,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_stream_k_fixup_general<128, 16, 4>(float*, HIP_vector_type<float, 2u> const*, in",
+        "calls": 36,
+        "gpu_ms": 1.1384,
+        "pct": 1.0,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_f<__half, float, 1, 256, true, false>(__half const*, float const*, int const*, ",
+        "calls": 3,
+        "gpu_ms": 0.7531,
+        "pct": 0.66,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_ext_f16<128, 128, 8, 4, false, false, false>(char const*, char const*, char cons",
+        "calls": 36,
+        "gpu_ms": 0.6277,
+        "pct": 0.55,
+        "class": "gemv_matmul"
+      }
+    ],
+    "class_ms": {
+      "gemv_matmul": 94.777,
+      "norm_act": 16.058,
+      "other": 2.7812
+    },
+    "class_pct": {
+      "gemv_matmul": 83.42,
+      "norm_act": 14.13,
+      "other": 2.45
+    },
+    "phase": "prefill",
+    "profile": "f16",
+    "gpu": "rx_9070_xt",
+    "llama_stderr_tail": "145207 sec\nW1106 10:41:22.949444   57333 simple_timer.cpp:55] [rocprofv3] tool finalization ::     1.147476 sec\nW1106 10:41:22.949681   57347 tool.cpp:4559] [PPID=0][PID=57333][TID=57347][signal_finalization_worker] rocprofv3 finalizing after signal 0...\nW1106 10:41:22.949781   57347 tool.cpp:4484] [PPID=0][PID=57333][TID=57347][signal_finalization_worker] rocprofv3 waiting for 0 children to exit\n"
+  },
+  "rx_9070_xt_q8_0_decode": {
+    "db": "results/_rocprof_rx_9070_xt_q8_0_decode/rx_9070_xt_q8_0_decode/host/57206_results.db",
+    "n_kernels": 21,
+    "gpu_total_ms": 1065.43,
+    "top": [
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)8, 1, true, false, false>(void const*, void const*, int const*, gg",
+        "calls": 12632,
+        "gpu_ms": 661.8603,
+        "pct": 62.12,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)8, 1, false, false, false>(void const*, void const*, int const*, g",
+        "calls": 12983,
+        "gpu_ms": 238.5748,
+        "pct": 22.39,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "quantize_q8_1(float const*, void*, long, long, long, long, long, unsigned int, HIP_vector_type<u",
+        "calls": 26113,
+        "gpu_ms": 47.792,
+        "pct": 4.49,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_tile<128, 128, 1, 4, false>(char const*, char const*, char const*, char const*, ",
+        "calls": 4248,
+        "gpu_ms": 21.441,
+        "pct": 2.01,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_f32<1024, 1, true, true, false, false>(float const*, float*, int, int, int, long, ",
+        "calls": 8833,
+        "gpu_ms": 20.7023,
+        "pct": 1.94,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)8, 2, false, false, false>(void const*, void const*, int const*, g",
+        "calls": 498,
+        "gpu_ms": 16.5324,
+        "pct": 1.55,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, __half>(float const*, __half*, int, int, int, long, long,",
+        "calls": 4356,
+        "gpu_ms": 12.5295,
+        "pct": 1.18,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, float>(float const*, float*, int, int, int, long, long, l",
+        "calls": 4356,
+        "gpu_ms": 11.5438,
+        "pct": 1.08,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_combine_results<128>(float const*, HIP_vector_type<float, 2u> const*, float*, in",
+        "calls": 4248,
+        "gpu_ms": 8.4165,
+        "pct": 0.79,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void k_set_rows<float, long, __half>(float const*, long const*, __half*, long, long, long, long,",
+        "calls": 4356,
+        "gpu_ms": 8.1783,
+        "pct": 0.77,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_q<(ggml_type)8, 16, false, (ggml_prec)30, false>(char const*, char const*, int cons",
+        "calls": 249,
+        "gpu_ms": 8.0784,
+        "pct": 0.76,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "__amd_rocclr_copyBuffer",
+        "calls": 1225,
+        "gpu_ms": 4.0166,
+        "pct": 0.38,
+        "class": "other"
+      },
+      {
+        "name": "__amd_rocclr_fillBufferUnAligned",
+        "calls": 4,
+        "gpu_ms": 1.7744,
+        "pct": 0.17,
+        "class": "other"
+      },
+      {
+        "name": "void k_bin_bcast<&(op_add(float, float)), float, float, float, float const*>(float const*, float",
+        "calls": 331,
+        "gpu_ms": 0.7368,
+        "pct": 0.07,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_ext_f16<128, 128, 16, 4, false, false, false>(char const*, char const*, char con",
+        "calls": 36,
+        "gpu_ms": 0.6804,
+        "pct": 0.06,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_stream_k_fixup_uniform<128, 16, 4>(float*, HIP_vector_type<float, 2u> const*, in",
+        "calls": 36,
+        "gpu_ms": 0.6686,
+        "pct": 0.06,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void quantize_mmq_q8_1<(mmq_q8_1_ds_layout)0, false>(float const*, int const*, void*, long, long",
+        "calls": 249,
+        "gpu_ms": 0.5104,
+        "pct": 0.05,
+        "class": "other"
+      },
+      {
+        "name": "void k_get_rows_float<float, float>(float const*, int const*, float*, long, long, HIP_vector_typ",
+        "calls": 242,
+        "gpu_ms": 0.5089,
+        "pct": 0.05,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_tile<128, 128, 2, 4, false>(char const*, char const*, char const*, char const*, ",
+        "calls": 72,
+        "gpu_ms": 0.4554,
+        "pct": 0.04,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void unary_gated_op_kernel<&(op_silu(float)), float>(float const*, float const*, float*, long, l",
+        "calls": 105,
+        "gpu_ms": 0.2445,
+        "pct": 0.02,
+        "class": "norm_act"
+      }
+    ],
+    "class_ms": {
+      "gemv_matmul": 1058.8827,
+      "other": 6.3014,
+      "norm_act": 0.2445
+    },
+    "class_pct": {
+      "gemv_matmul": 99.39,
+      "other": 0.59,
+      "norm_act": 0.02
+    },
+    "phase": "decode",
+    "profile": "q8_0",
+    "gpu": "rx_9070_xt"
+  },
+  "rx_9070_xt_q8_0_prefill": {
+    "db": "results/_rocprof_rx_9070_xt_q8_0_prefill/rx_9070_xt_q8_0_prefill/host/57391_results.db",
+    "n_kernels": 22,
+    "gpu_total_ms": 91.44,
+    "top": [
+      {
+        "name": "void mul_mat_q<(ggml_type)8, 128, false, (ggml_prec)30, false>(char const*, char const*, int con",
+        "calls": 249,
+        "gpu_ms": 36.6835,
+        "pct": 40.12,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)8, 2, false, false, false>(void const*, void const*, int const*, g",
+        "calls": 498,
+        "gpu_ms": 16.4188,
+        "pct": 17.96,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)8, 7, false, false, false>(void const*, void const*, int const*, g",
+        "calls": 249,
+        "gpu_ms": 8.7399,
+        "pct": 9.56,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_ext_f16<128, 128, 16, 4, false, false, false>(char const*, char const*, char con",
+        "calls": 36,
+        "gpu_ms": 5.1263,
+        "pct": 5.61,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, float>(float const*, float*, int, int, int, long, long, l",
+        "calls": 144,
+        "gpu_ms": 3.5776,
+        "pct": 3.91,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void unary_gated_op_kernel<&(op_silu(float)), float>(float const*, float const*, float*, long, l",
+        "calls": 140,
+        "gpu_ms": 2.4358,
+        "pct": 2.66,
+        "class": "norm_act"
+      },
+      {
+        "name": "void quantize_mmq_q8_1<(mmq_q8_1_ds_layout)0, false>(float const*, int const*, void*, long, long",
+        "calls": 249,
+        "gpu_ms": 2.4135,
+        "pct": 2.64,
+        "class": "other"
+      },
+      {
+        "name": "void rms_norm_f32<1024, 1, true, true, false, false>(float const*, float*, int, int, int, long, ",
+        "calls": 290,
+        "gpu_ms": 2.3413,
+        "pct": 2.56,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "__amd_rocclr_fillBufferUnAligned",
+        "calls": 4,
+        "gpu_ms": 2.1564,
+        "pct": 2.36,
+        "class": "other"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)8, 1, false, false, false>(void const*, void const*, int const*, g",
+        "calls": 3,
+        "gpu_ms": 2.1164,
+        "pct": 2.31,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, __half>(float const*, __half*, int, int, int, long, long,",
+        "calls": 144,
+        "gpu_ms": 1.9158,
+        "pct": 2.1,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "quantize_q8_1(float const*, void*, long, long, long, long, long, unsigned int, HIP_vector_type<u",
+        "calls": 756,
+        "gpu_ms": 1.5783,
+        "pct": 1.73,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void k_bin_bcast<&(op_add(float, float)), float, float, float, float const*>(float const*, float",
+        "calls": 283,
+        "gpu_ms": 1.5323,
+        "pct": 1.68,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_stream_k_fixup_general<128, 16, 4>(float*, HIP_vector_type<float, 2u> const*, in",
+        "calls": 36,
+        "gpu_ms": 1.1372,
+        "pct": 1.24,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_ext_f16<128, 128, 8, 4, false, false, false>(char const*, char const*, char cons",
+        "calls": 36,
+        "gpu_ms": 0.6285,
+        "pct": 0.69,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)8, 1, true, false, false>(void const*, void const*, int const*, gg",
+        "calls": 6,
+        "gpu_ms": 0.6104,
+        "pct": 0.67,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "__amd_rocclr_copyBuffer",
+        "calls": 167,
+        "gpu_ms": 0.6064,
+        "pct": 0.66,
+        "class": "other"
+      },
+      {
+        "name": "void k_set_rows<float, long, __half>(float const*, long const*, __half*, long, long, long, long,",
+        "calls": 144,
+        "gpu_ms": 0.5653,
+        "pct": 0.62,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_tile<128, 128, 2, 4, false>(char const*, char const*, char const*, char const*, ",
+        "calls": 72,
+        "gpu_ms": 0.4569,
+        "pct": 0.5,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_stream_k_fixup_uniform<128, 8, 4>(float*, HIP_vector_type<float, 2u> const*, int",
+        "calls": 36,
+        "gpu_ms": 0.1965,
+        "pct": 0.21,
+        "class": "gemv_matmul"
+      }
+    ],
+    "class_ms": {
+      "gemv_matmul": 83.8274,
+      "norm_act": 2.4358,
+      "other": 5.1763
+    },
+    "class_pct": {
+      "gemv_matmul": 91.68,
+      "norm_act": 2.66,
+      "other": 5.66
+    },
+    "phase": "prefill",
+    "profile": "q8_0",
+    "gpu": "rx_9070_xt",
+    "llama_stderr_tail": "030927 sec\nW1106 10:41:28.490905   57391 simple_timer.cpp:55] [rocprofv3] tool finalization ::     1.032274 sec\nW1106 10:41:28.491145   57405 tool.cpp:4559] [PPID=0][PID=57391][TID=57405][signal_finalization_worker] rocprofv3 finalizing after signal 0...\nW1106 10:41:28.491214   57405 tool.cpp:4484] [PPID=0][PID=57391][TID=57405][signal_finalization_worker] rocprofv3 waiting for 0 children to exit\n"
+  },
+  "rx_9070_xt_q4_k_m_decode": {
+    "db": "results/_rocprof_rx_9070_xt_q4_k_m_decode/rx_9070_xt_q4_k_m_decode/host/57263_results.db",
+    "n_kernels": 26,
+    "gpu_total_ms": 783.69,
+    "top": [
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)12, 1, true, false, false>(void const*, void const*, int const*, g",
+        "calls": 11306,
+        "gpu_ms": 349.8078,
+        "pct": 44.64,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)12, 1, false, false, false>(void const*, void const*, int const*, ",
+        "calls": 11557,
+        "gpu_ms": 98.8625,
+        "pct": 12.62,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)14, 1, true, false, false>(void const*, void const*, int const*, g",
+        "calls": 2289,
+        "gpu_ms": 81.8073,
+        "pct": 10.44,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)14, 1, false, false, false>(void const*, void const*, int const*, ",
+        "calls": 2416,
+        "gpu_ms": 79.8578,
+        "pct": 10.19,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "quantize_q8_1(float const*, void*, long, long, long, long, long, unsigned int, HIP_vector_type<u",
+        "calls": 28066,
+        "gpu_ms": 51.3175,
+        "pct": 6.55,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_tile<128, 128, 1, 4, false>(char const*, char const*, char const*, char const*, ",
+        "calls": 4572,
+        "gpu_ms": 23.3079,
+        "pct": 2.97,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_f32<1024, 1, true, true, false, false>(float const*, float*, int, int, int, long, ",
+        "calls": 9490,
+        "gpu_ms": 21.9403,
+        "pct": 2.8,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, __half>(float const*, __half*, int, int, int, long, long,",
+        "calls": 4680,
+        "gpu_ms": 13.9418,
+        "pct": 1.78,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, float>(float const*, float*, int, int, int, long, long, l",
+        "calls": 4680,
+        "gpu_ms": 12.3728,
+        "pct": 1.58,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)12, 2, false, false, false>(void const*, void const*, int const*, ",
+        "calls": 428,
+        "gpu_ms": 12.0152,
+        "pct": 1.53,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_combine_results<128>(float const*, HIP_vector_type<float, 2u> const*, float*, in",
+        "calls": 4572,
+        "gpu_ms": 8.854,
+        "pct": 1.13,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void k_set_rows<float, long, __half>(float const*, long const*, __half*, long, long, long, long,",
+        "calls": 4680,
+        "gpu_ms": 8.7806,
+        "pct": 1.12,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_q<(ggml_type)12, 16, false, (ggml_prec)30, false>(char const*, char const*, int con",
+        "calls": 214,
+        "gpu_ms": 6.0048,
+        "pct": 0.77,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "__amd_rocclr_copyBuffer",
+        "calls": 1306,
+        "gpu_ms": 4.4278,
+        "pct": 0.56,
+        "class": "other"
+      },
+      {
+        "name": "__amd_rocclr_fillBufferUnAligned",
+        "calls": 4,
+        "gpu_ms": 2.5565,
+        "pct": 0.33,
+        "class": "other"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)14, 2, false, false, false>(void const*, void const*, int const*, ",
+        "calls": 70,
+        "gpu_ms": 2.1467,
+        "pct": 0.27,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_q<(ggml_type)14, 16, false, (ggml_prec)30, false>(char const*, char const*, int con",
+        "calls": 35,
+        "gpu_ms": 1.599,
+        "pct": 0.2,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void k_bin_bcast<&(op_add(float, float)), float, float, float, float const*>(float const*, float",
+        "calls": 340,
+        "gpu_ms": 0.7508,
+        "pct": 0.1,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_stream_k_fixup_uniform<128, 16, 4>(float*, HIP_vector_type<float, 2u> const*, in",
+        "calls": 36,
+        "gpu_ms": 0.6642,
+        "pct": 0.08,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void k_get_rows_float<float, float>(float const*, int const*, float*, long, long, HIP_vector_typ",
+        "calls": 260,
+        "gpu_ms": 0.5481,
+        "pct": 0.07,
+        "class": "gemv_matmul"
+      }
+    ],
+    "class_ms": {
+      "gemv_matmul": 775.7785,
+      "other": 7.4866,
+      "norm_act": 0.424
+    },
+    "class_pct": {
+      "gemv_matmul": 98.99,
+      "other": 0.96,
+      "norm_act": 0.05
+    },
+    "phase": "decode",
+    "profile": "q4_k_m",
+    "gpu": "rx_9070_xt"
+  },
+  "rx_9070_xt_q4_k_m_prefill": {
+    "db": "results/_rocprof_rx_9070_xt_q4_k_m_prefill/rx_9070_xt_q4_k_m_prefill/host/57449_results.db",
+    "n_kernels": 27,
+    "gpu_total_ms": 99.94,
+    "top": [
+      {
+        "name": "void mul_mat_q<(ggml_type)12, 128, false, (ggml_prec)30, false>(char const*, char const*, int co",
+        "calls": 214,
+        "gpu_ms": 36.2888,
+        "pct": 36.31,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_q<(ggml_type)14, 128, false, (ggml_prec)30, false>(char const*, char const*, int co",
+        "calls": 35,
+        "gpu_ms": 12.1145,
+        "pct": 12.12,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)12, 2, false, false, false>(void const*, void const*, int const*, ",
+        "calls": 428,
+        "gpu_ms": 11.8532,
+        "pct": 11.86,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)12, 7, false, false, false>(void const*, void const*, int const*, ",
+        "calls": 214,
+        "gpu_ms": 7.2189,
+        "pct": 7.22,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_ext_f16<128, 128, 16, 4, false, false, false>(char const*, char const*, char con",
+        "calls": 36,
+        "gpu_ms": 5.1562,
+        "pct": 5.16,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, float>(float const*, float*, int, int, int, long, long, l",
+        "calls": 144,
+        "gpu_ms": 3.5753,
+        "pct": 3.58,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void rms_norm_f32<1024, 1, true, true, false, false>(float const*, float*, int, int, int, long, ",
+        "calls": 290,
+        "gpu_ms": 2.3569,
+        "pct": 2.36,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void unary_gated_op_kernel<&(op_silu(float)), float>(float const*, float const*, float*, long, l",
+        "calls": 140,
+        "gpu_ms": 2.3188,
+        "pct": 2.32,
+        "class": "norm_act"
+      },
+      {
+        "name": "__amd_rocclr_fillBufferUnAligned",
+        "calls": 4,
+        "gpu_ms": 2.1781,
+        "pct": 2.18,
+        "class": "other"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)14, 2, false, false, false>(void const*, void const*, int const*, ",
+        "calls": 70,
+        "gpu_ms": 2.1647,
+        "pct": 2.17,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void quantize_mmq_q8_1<(mmq_q8_1_ds_layout)1, false>(float const*, int const*, void*, long, long",
+        "calls": 214,
+        "gpu_ms": 2.0309,
+        "pct": 2.03,
+        "class": "other"
+      },
+      {
+        "name": "void rms_norm_mul_rope_f32<256, false, __half>(float const*, __half*, int, int, int, long, long,",
+        "calls": 144,
+        "gpu_ms": 1.8945,
+        "pct": 1.9,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)14, 1, false, false, false>(void const*, void const*, int const*, ",
+        "calls": 3,
+        "gpu_ms": 1.654,
+        "pct": 1.66,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "quantize_q8_1(float const*, void*, long, long, long, long, long, unsigned int, HIP_vector_type<u",
+        "calls": 756,
+        "gpu_ms": 1.6012,
+        "pct": 1.6,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void k_bin_bcast<&(op_add(float, float)), float, float, float, float const*>(float const*, float",
+        "calls": 283,
+        "gpu_ms": 1.547,
+        "pct": 1.55,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void mul_mat_vec_q<(ggml_type)14, 7, false, false, false>(void const*, void const*, int const*, ",
+        "calls": 35,
+        "gpu_ms": 1.3538,
+        "pct": 1.35,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_stream_k_fixup_general<128, 16, 4>(float*, HIP_vector_type<float, 2u> const*, in",
+        "calls": 36,
+        "gpu_ms": 1.1367,
+        "pct": 1.14,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "__amd_rocclr_copyBuffer",
+        "calls": 167,
+        "gpu_ms": 0.6052,
+        "pct": 0.61,
+        "class": "other"
+      },
+      {
+        "name": "void k_set_rows<float, long, __half>(float const*, long const*, __half*, long, long, long, long,",
+        "calls": 144,
+        "gpu_ms": 0.5984,
+        "pct": 0.6,
+        "class": "gemv_matmul"
+      },
+      {
+        "name": "void flash_attn_tile<128, 128, 2, 4, false>(char const*, char const*, char const*, char const*, ",
+        "calls": 72,
+        "gpu_ms": 0.5097,
+        "pct": 0.51,
+        "class": "gemv_matmul"
+      }
+    ],
+    "class_ms": {
+      "gemv_matmul": 92.3405,
+      "norm_act": 2.3188,
+      "other": 5.279
+    },
+    "class_pct": {
+      "gemv_matmul": 92.4,
+      "norm_act": 2.32,
+      "other": 5.28
+    },
+    "phase": "prefill",
+    "profile": "q4_k_m",
+    "gpu": "rx_9070_xt",
+    "llama_stderr_tail": "039800 sec\nW1106 10:41:32.941064   57449 simple_timer.cpp:55] [rocprofv3] tool finalization ::     1.041010 sec\nW1106 10:41:32.941356   57463 tool.cpp:4559] [PPID=0][PID=57449][TID=57463][signal_finalization_worker] rocprofv3 finalizing after signal 0...\nW1106 10:41:32.941452   57463 tool.cpp:4484] [PPID=0][PID=57449][TID=57463][signal_finalization_worker] rocprofv3 waiting for 0 children to exit\n"
+  }
+}

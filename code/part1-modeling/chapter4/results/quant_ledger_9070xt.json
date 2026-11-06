@@ -1,0 +1,608 @@
+{
+  "timestamp_utc": "2026-11-06T09:34:34Z",
+  "purpose": "CH4 测量前预测：量化方案 × 硬件 可行域账本（prediction 源）",
+  "model": {
+    "name": "Qwen3-4B",
+    "path": "/mnt/public/models/Qwen3-4B",
+    "n_layers": 36,
+    "hidden": 2560,
+    "n_q_heads": 32,
+    "n_kv_heads": 8,
+    "head_dim": 128,
+    "inter": 9728,
+    "vocab": 151936,
+    "tie_weights": true
+  },
+  "weight_components_m": {
+    "embed_tokens": 389.0,
+    "per_layer_total": 100.9,
+    "n_layers": 36,
+    "attention_total": 943.7,
+    "mlp_total": 2689.6,
+    "norms_total": 0.4,
+    "final_norm": 2560,
+    "total": 4022.6
+  },
+  "budgets": {
+    "idle_floor_gib": 0.2,
+    "act_reserve_gib": 0.58,
+    "kv_tokens": 4096,
+    "ctx": 512,
+    "toks_s_budget": 20.0,
+    "ttft_budget_s": 2.0,
+    "ppl_rel_budget": 1.1
+  },
+  "notes": {
+    "eta_alu": 0.5,
+    "eta_alu_note": "假设值；§4.x kernel trace 校准后回填 t_dequant",
+    "7900_note": "名义常数；η/β 复用 9070 校准值（未校准，仅方向性对照）"
+  },
+  "hardware": {
+    "rx_9070_xt": {
+      "peak_tflops": 195.0,
+      "bw_gbps": 640.0,
+      "eta": 0.6243,
+      "beta": 0.9054,
+      "alu_tflops": 28.8,
+      "vram_gib": 15.92,
+      "coeff_note": "Ch2 §2.3 校准（cal_9070xt.json），主卡"
+    },
+    "rx_7900_xtx": {
+      "peak_tflops": 214.0,
+      "bw_gbps": 960.0,
+      "eta": 0.6243,
+      "beta": 0.9054,
+      "alu_tflops": 30.7,
+      "vram_gib": 23.75,
+      "coeff_note": "名义常数；η/β 复用 9070 校准值（未校准，仅方向性对照）"
+    }
+  },
+  "profiles": {
+    "bf16": {
+      "bpw": 2.0,
+      "ops_dequant": 0,
+      "engine": "vLLM（HF bf16）/ llama.cpp F16 GGUF",
+      "covered": true
+    },
+    "int8_w8a16": {
+      "bpw": 1.125,
+      "ops_dequant": 2,
+      "engine": "llama.cpp Q8_0（8bit+scale/32）",
+      "covered": true
+    },
+    "int4_w4a16": {
+      "bpw": 0.625,
+      "ops_dequant": 4,
+      "engine": "llama.cpp Q4_K_M（混合 4/5bit k-quant）",
+      "covered": true
+    },
+    "fp8_e4m3": {
+      "bpw": 1.0625,
+      "ops_dequant": 1,
+      "engine": "not_covered：本机无 FP8 样本/路径（9070 XT 有 ai_f8 但无预量化 checkpoint）",
+      "covered": false
+    },
+    "fp4_nvfp4": {
+      "bpw": 0.5625,
+      "ops_dequant": 2,
+      "engine": "not_covered：RDNA 无 FP4 硬件路径",
+      "covered": false
+    }
+  },
+  "ledger": {
+    "rx_9070_xt": {
+      "bf16": {
+        "bpw": 2.0,
+        "ops_dequant_per_elem": 0,
+        "engine": "vLLM（HF bf16）/ llama.cpp F16 GGUF",
+        "covered": true,
+        "params": {
+          "total_m": 4022.6,
+          "f16held_m": 389.3,
+          "quant_m": 3633.3
+        },
+        "weights_gib": {
+          "naive_all_quant": 7.493,
+          "gguf_aware": 7.493
+        },
+        "kv": {
+          "bytes_per_token": 147456,
+          "pool_gib_4096": 0.562
+        },
+        "vram_need_gib": 8.635,
+        "vram_budget_gib": 15.72,
+        "vram_util": 0.5493,
+        "vram_break_line": {
+          "max_params_b": 7.8,
+          "approx_note": "沿用 Qwen3-4B 组成比例（f16held≈19.4%）与 L=36 KV 池；大模型 KV 更大，此为上界近似"
+        },
+        "decode_b1_ctx512": {
+          "bytes_per_step_mib": 7744.7,
+          "flops_per_step_g": 7.569,
+          "t_comp_ms": 0.062,
+          "t_mem_ms": 14.015,
+          "t_dequant_alu_ms": 0.0,
+          "t_pred_ms": 14.015,
+          "pred_toks_s": 71.4,
+          "rate_limited_by": "memory"
+        },
+        "prefill_512": {
+          "t_pred_ms": 31.8
+        },
+        "feasibility": {
+          "vram_ok": true,
+          "decode_latency_ok": true,
+          "ttft_ok": true,
+          "quality_ok": null,
+          "break_first": null,
+          "margins": {
+            "vram": 0.5493,
+            "decode_latency": 0.2803,
+            "ttft": 0.0159
+          }
+        }
+      },
+      "int8_w8a16": {
+        "bpw": 1.125,
+        "ops_dequant_per_elem": 2,
+        "engine": "llama.cpp Q8_0（8bit+scale/32）",
+        "covered": true,
+        "params": {
+          "total_m": 4022.6,
+          "f16held_m": 389.3,
+          "quant_m": 3633.3
+        },
+        "weights_gib": {
+          "naive_all_quant": 4.215,
+          "gguf_aware": 4.532
+        },
+        "kv": {
+          "bytes_per_token": 147456,
+          "pool_gib_4096": 0.562
+        },
+        "vram_need_gib": 5.674,
+        "vram_budget_gib": 15.72,
+        "vram_util": 0.361,
+        "vram_break_line": {
+          "max_params_b": 12.9,
+          "approx_note": "沿用 Qwen3-4B 组成比例（f16held≈19.4%）与 L=36 KV 池；大模型 KV 更大，此为上界近似"
+        },
+        "decode_b1_ctx512": {
+          "bytes_per_step_mib": 4712.8,
+          "flops_per_step_g": 7.569,
+          "t_comp_ms": 0.062,
+          "t_mem_ms": 8.528,
+          "t_dequant_alu_ms": 0.505,
+          "t_pred_ms": 9.033,
+          "pred_toks_s": 110.7,
+          "rate_limited_by": "memory"
+        },
+        "prefill_512": {
+          "t_pred_ms": 31.8
+        },
+        "feasibility": {
+          "vram_ok": true,
+          "decode_latency_ok": true,
+          "ttft_ok": true,
+          "quality_ok": null,
+          "break_first": null,
+          "margins": {
+            "vram": 0.361,
+            "decode_latency": 0.1807,
+            "ttft": 0.0159
+          }
+        }
+      },
+      "int4_w4a16": {
+        "bpw": 0.625,
+        "ops_dequant_per_elem": 4,
+        "engine": "llama.cpp Q4_K_M（混合 4/5bit k-quant）",
+        "covered": true,
+        "params": {
+          "total_m": 4022.6,
+          "f16held_m": 389.3,
+          "quant_m": 3633.3
+        },
+        "weights_gib": {
+          "naive_all_quant": 2.341,
+          "gguf_aware": 2.84
+        },
+        "kv": {
+          "bytes_per_token": 147456,
+          "pool_gib_4096": 0.562
+        },
+        "vram_need_gib": 3.983,
+        "vram_budget_gib": 15.72,
+        "vram_util": 0.2533,
+        "vram_break_line": {
+          "max_params_b": 20.6,
+          "approx_note": "沿用 Qwen3-4B 组成比例（f16held≈19.4%）与 L=36 KV 池；大模型 KV 更大，此为上界近似"
+        },
+        "decode_b1_ctx512": {
+          "bytes_per_step_mib": 2980.3,
+          "flops_per_step_g": 7.569,
+          "t_comp_ms": 0.062,
+          "t_mem_ms": 5.393,
+          "t_dequant_alu_ms": 1.009,
+          "t_pred_ms": 6.403,
+          "pred_toks_s": 156.2,
+          "rate_limited_by": "memory"
+        },
+        "prefill_512": {
+          "t_pred_ms": 31.8
+        },
+        "feasibility": {
+          "vram_ok": true,
+          "decode_latency_ok": true,
+          "ttft_ok": true,
+          "quality_ok": null,
+          "break_first": null,
+          "margins": {
+            "vram": 0.2533,
+            "decode_latency": 0.1281,
+            "ttft": 0.0159
+          }
+        }
+      },
+      "fp8_e4m3": {
+        "bpw": 1.0625,
+        "ops_dequant_per_elem": 1,
+        "engine": "not_covered：本机无 FP8 样本/路径（9070 XT 有 ai_f8 但无预量化 checkpoint）",
+        "covered": false,
+        "params": {
+          "total_m": 4022.6,
+          "f16held_m": 389.3,
+          "quant_m": 3633.3
+        },
+        "weights_gib": {
+          "naive_all_quant": 3.981,
+          "gguf_aware": 4.32
+        },
+        "kv": {
+          "bytes_per_token": 147456,
+          "pool_gib_4096": 0.562
+        },
+        "vram_need_gib": 5.463,
+        "vram_budget_gib": 15.72,
+        "vram_util": 0.3475,
+        "vram_break_line": {
+          "max_params_b": 13.6,
+          "approx_note": "沿用 Qwen3-4B 组成比例（f16held≈19.4%）与 L=36 KV 池；大模型 KV 更大，此为上界近似"
+        },
+        "decode_b1_ctx512": {
+          "bytes_per_step_mib": 4496.3,
+          "flops_per_step_g": 7.569,
+          "t_comp_ms": 0.062,
+          "t_mem_ms": 8.136,
+          "t_dequant_alu_ms": 0.252,
+          "t_pred_ms": 8.389,
+          "pred_toks_s": 119.2,
+          "rate_limited_by": "memory"
+        },
+        "prefill_512": {
+          "t_pred_ms": 31.8
+        },
+        "feasibility": {
+          "vram_ok": true,
+          "decode_latency_ok": true,
+          "ttft_ok": true,
+          "quality_ok": null,
+          "break_first": null,
+          "margins": {
+            "vram": 0.3475,
+            "decode_latency": 0.1678,
+            "ttft": 0.0159
+          }
+        }
+      },
+      "fp4_nvfp4": {
+        "bpw": 0.5625,
+        "ops_dequant_per_elem": 2,
+        "engine": "not_covered：RDNA 无 FP4 硬件路径",
+        "covered": false,
+        "params": {
+          "total_m": 4022.6,
+          "f16held_m": 389.3,
+          "quant_m": 3633.3
+        },
+        "weights_gib": {
+          "naive_all_quant": 2.107,
+          "gguf_aware": 2.629
+        },
+        "kv": {
+          "bytes_per_token": 147456,
+          "pool_gib_4096": 0.562
+        },
+        "vram_need_gib": 3.771,
+        "vram_budget_gib": 15.72,
+        "vram_util": 0.2399,
+        "vram_break_line": {
+          "max_params_b": 22.3,
+          "approx_note": "沿用 Qwen3-4B 组成比例（f16held≈19.4%）与 L=36 KV 池；大模型 KV 更大，此为上界近似"
+        },
+        "decode_b1_ctx512": {
+          "bytes_per_step_mib": 2763.8,
+          "flops_per_step_g": 7.569,
+          "t_comp_ms": 0.062,
+          "t_mem_ms": 5.001,
+          "t_dequant_alu_ms": 0.505,
+          "t_pred_ms": 5.506,
+          "pred_toks_s": 181.6,
+          "rate_limited_by": "memory"
+        },
+        "prefill_512": {
+          "t_pred_ms": 31.8
+        },
+        "feasibility": {
+          "vram_ok": true,
+          "decode_latency_ok": true,
+          "ttft_ok": true,
+          "quality_ok": null,
+          "break_first": null,
+          "margins": {
+            "vram": 0.2399,
+            "decode_latency": 0.1101,
+            "ttft": 0.0159
+          }
+        }
+      }
+    },
+    "rx_7900_xtx": {
+      "bf16": {
+        "bpw": 2.0,
+        "ops_dequant_per_elem": 0,
+        "engine": "vLLM（HF bf16）/ llama.cpp F16 GGUF",
+        "covered": true,
+        "params": {
+          "total_m": 4022.6,
+          "f16held_m": 389.3,
+          "quant_m": 3633.3
+        },
+        "weights_gib": {
+          "naive_all_quant": 7.493,
+          "gguf_aware": 7.493
+        },
+        "kv": {
+          "bytes_per_token": 147456,
+          "pool_gib_4096": 0.562
+        },
+        "vram_need_gib": 8.635,
+        "vram_budget_gib": 23.55,
+        "vram_util": 0.3667,
+        "vram_break_line": {
+          "max_params_b": 12.0,
+          "approx_note": "沿用 Qwen3-4B 组成比例（f16held≈19.4%）与 L=36 KV 池；大模型 KV 更大，此为上界近似"
+        },
+        "decode_b1_ctx512": {
+          "bytes_per_step_mib": 7744.7,
+          "flops_per_step_g": 7.569,
+          "t_comp_ms": 0.057,
+          "t_mem_ms": 9.343,
+          "t_dequant_alu_ms": 0.0,
+          "t_pred_ms": 9.343,
+          "pred_toks_s": 107.0,
+          "rate_limited_by": "memory"
+        },
+        "prefill_512": {
+          "t_pred_ms": 29.0
+        },
+        "feasibility": {
+          "vram_ok": true,
+          "decode_latency_ok": true,
+          "ttft_ok": true,
+          "quality_ok": null,
+          "break_first": null,
+          "margins": {
+            "vram": 0.3667,
+            "decode_latency": 0.1869,
+            "ttft": 0.0145
+          }
+        }
+      },
+      "int8_w8a16": {
+        "bpw": 1.125,
+        "ops_dequant_per_elem": 2,
+        "engine": "llama.cpp Q8_0（8bit+scale/32）",
+        "covered": true,
+        "params": {
+          "total_m": 4022.6,
+          "f16held_m": 389.3,
+          "quant_m": 3633.3
+        },
+        "weights_gib": {
+          "naive_all_quant": 4.215,
+          "gguf_aware": 4.532
+        },
+        "kv": {
+          "bytes_per_token": 147456,
+          "pool_gib_4096": 0.562
+        },
+        "vram_need_gib": 5.674,
+        "vram_budget_gib": 23.55,
+        "vram_util": 0.241,
+        "vram_break_line": {
+          "max_params_b": 19.9,
+          "approx_note": "沿用 Qwen3-4B 组成比例（f16held≈19.4%）与 L=36 KV 池；大模型 KV 更大，此为上界近似"
+        },
+        "decode_b1_ctx512": {
+          "bytes_per_step_mib": 4712.8,
+          "flops_per_step_g": 7.569,
+          "t_comp_ms": 0.057,
+          "t_mem_ms": 5.686,
+          "t_dequant_alu_ms": 0.473,
+          "t_pred_ms": 6.159,
+          "pred_toks_s": 162.4,
+          "rate_limited_by": "memory"
+        },
+        "prefill_512": {
+          "t_pred_ms": 29.0
+        },
+        "feasibility": {
+          "vram_ok": true,
+          "decode_latency_ok": true,
+          "ttft_ok": true,
+          "quality_ok": null,
+          "break_first": null,
+          "margins": {
+            "vram": 0.241,
+            "decode_latency": 0.1232,
+            "ttft": 0.0145
+          }
+        }
+      },
+      "int4_w4a16": {
+        "bpw": 0.625,
+        "ops_dequant_per_elem": 4,
+        "engine": "llama.cpp Q4_K_M（混合 4/5bit k-quant）",
+        "covered": true,
+        "params": {
+          "total_m": 4022.6,
+          "f16held_m": 389.3,
+          "quant_m": 3633.3
+        },
+        "weights_gib": {
+          "naive_all_quant": 2.341,
+          "gguf_aware": 2.84
+        },
+        "kv": {
+          "bytes_per_token": 147456,
+          "pool_gib_4096": 0.562
+        },
+        "vram_need_gib": 3.983,
+        "vram_budget_gib": 23.55,
+        "vram_util": 0.1691,
+        "vram_break_line": {
+          "max_params_b": 31.7,
+          "approx_note": "沿用 Qwen3-4B 组成比例（f16held≈19.4%）与 L=36 KV 池；大模型 KV 更大，此为上界近似"
+        },
+        "decode_b1_ctx512": {
+          "bytes_per_step_mib": 2980.3,
+          "flops_per_step_g": 7.569,
+          "t_comp_ms": 0.057,
+          "t_mem_ms": 3.595,
+          "t_dequant_alu_ms": 0.947,
+          "t_pred_ms": 4.542,
+          "pred_toks_s": 220.2,
+          "rate_limited_by": "memory"
+        },
+        "prefill_512": {
+          "t_pred_ms": 29.0
+        },
+        "feasibility": {
+          "vram_ok": true,
+          "decode_latency_ok": true,
+          "ttft_ok": true,
+          "quality_ok": null,
+          "break_first": null,
+          "margins": {
+            "vram": 0.1691,
+            "decode_latency": 0.0908,
+            "ttft": 0.0145
+          }
+        }
+      },
+      "fp8_e4m3": {
+        "bpw": 1.0625,
+        "ops_dequant_per_elem": 1,
+        "engine": "not_covered：本机无 FP8 样本/路径（9070 XT 有 ai_f8 但无预量化 checkpoint）",
+        "covered": false,
+        "params": {
+          "total_m": 4022.6,
+          "f16held_m": 389.3,
+          "quant_m": 3633.3
+        },
+        "weights_gib": {
+          "naive_all_quant": 3.981,
+          "gguf_aware": 4.32
+        },
+        "kv": {
+          "bytes_per_token": 147456,
+          "pool_gib_4096": 0.562
+        },
+        "vram_need_gib": 5.463,
+        "vram_budget_gib": 23.55,
+        "vram_util": 0.232,
+        "vram_break_line": {
+          "max_params_b": 20.9,
+          "approx_note": "沿用 Qwen3-4B 组成比例（f16held≈19.4%）与 L=36 KV 池；大模型 KV 更大，此为上界近似"
+        },
+        "decode_b1_ctx512": {
+          "bytes_per_step_mib": 4496.3,
+          "flops_per_step_g": 7.569,
+          "t_comp_ms": 0.057,
+          "t_mem_ms": 5.424,
+          "t_dequant_alu_ms": 0.237,
+          "t_pred_ms": 5.661,
+          "pred_toks_s": 176.6,
+          "rate_limited_by": "memory"
+        },
+        "prefill_512": {
+          "t_pred_ms": 29.0
+        },
+        "feasibility": {
+          "vram_ok": true,
+          "decode_latency_ok": true,
+          "ttft_ok": true,
+          "quality_ok": null,
+          "break_first": null,
+          "margins": {
+            "vram": 0.232,
+            "decode_latency": 0.1132,
+            "ttft": 0.0145
+          }
+        }
+      },
+      "fp4_nvfp4": {
+        "bpw": 0.5625,
+        "ops_dequant_per_elem": 2,
+        "engine": "not_covered：RDNA 无 FP4 硬件路径",
+        "covered": false,
+        "params": {
+          "total_m": 4022.6,
+          "f16held_m": 389.3,
+          "quant_m": 3633.3
+        },
+        "weights_gib": {
+          "naive_all_quant": 2.107,
+          "gguf_aware": 2.629
+        },
+        "kv": {
+          "bytes_per_token": 147456,
+          "pool_gib_4096": 0.562
+        },
+        "vram_need_gib": 3.771,
+        "vram_budget_gib": 23.55,
+        "vram_util": 0.1601,
+        "vram_break_line": {
+          "max_params_b": 34.3,
+          "approx_note": "沿用 Qwen3-4B 组成比例（f16held≈19.4%）与 L=36 KV 池；大模型 KV 更大，此为上界近似"
+        },
+        "decode_b1_ctx512": {
+          "bytes_per_step_mib": 2763.8,
+          "flops_per_step_g": 7.569,
+          "t_comp_ms": 0.057,
+          "t_mem_ms": 3.334,
+          "t_dequant_alu_ms": 0.473,
+          "t_pred_ms": 3.808,
+          "pred_toks_s": 262.6,
+          "rate_limited_by": "memory"
+        },
+        "prefill_512": {
+          "t_pred_ms": 29.0
+        },
+        "feasibility": {
+          "vram_ok": true,
+          "decode_latency_ok": true,
+          "ttft_ok": true,
+          "quality_ok": null,
+          "break_first": null,
+          "margins": {
+            "vram": 0.1601,
+            "decode_latency": 0.0762,
+            "ttft": 0.0145
+          }
+        }
+      }
+    }
+  }
+}

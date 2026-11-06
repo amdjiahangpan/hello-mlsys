@@ -1,0 +1,67 @@
+# Hello MLSys · 第 4 章实验底稿
+# 模板: docs/public/part0-intro/chapter0/experiment-draft.yaml（字段结构不变）
+# 纪律: prediction.stored_at 先于测量；holdout 测前冻结、用后即烧；
+#       不支持的机制标 not_covered，不静默改配置。
+
+experiment_id: exp_ch4_001
+chapter: 4
+hypothesis: >
+  decode B=1 量化后仍 memory-bound：权重字节减半 → decode 时间近似减半；
+  INT4 W4A16 的 dequant ALU 开销 ≤~10%（第一性估计），显存收益保留、
+  延迟收益保留；16 GB 卡上 4B 模型不构成 VRAM 约束（断裂线 20.6B），
+  真正的约束排序是 质量(PPL) ≥ 延迟 ≥ 显存。
+  反例待验证：若 INT4 实测 < BF16（dequant 路径未向量化/临时 f16 落盘），
+  则 dequant 系数需按 kernel trace 重标定。
+
+scenario:
+  model: "Qwen3-4B（tie_word_embeddings=true，4022.6M）"
+  hardware: "RX 9070 XT 16GB gfx1201（主卡，HIP/HSA_VISIBLE_DEVICES=1）+ RX 7900 XTX 24GB gfx1100（辅助，holdout）"
+  workload: "prefill 512 / decode 128，greedy，固定 prompt；wikitext-2 test PPL（chunk 1024）"
+
+environment:                            # 测量前快照（2026-11-06T09:35Z，宿主 + 容器 ch4-mlsys）
+  gpu_driver: "6.16.13"
+  rocm_version: "rocm10.1.0"
+  framework: "vllm 0.29.1.dev0+g98dff2a81.d20261002 (torch 2.13.0+rocm10.1.0) + llama.cpp b12169 (HIP, gfx1201/gfx1100)"
+  os: "Linux 6.14.0-37-generic"
+
+prediction:
+  tool: "quant_ledger.py（code/part1-modeling/chapter4/，results/quant_ledger_9070xt.json）"
+  calibration_version: "ch2 cal_9070xt.json（η=0.6243 / β=0.9054，195 TFLOPS / 640 GB/s；η_alu=0.5 为假设）"
+  metrics:                             # 9070 XT，decode B=1 ctx=512，GiB 口径 = 2^30 B
+    bf16:        {weight_gib: 7.493, vram_need_gib: 8.635, t_step_ms: 14.02, upper_bound_tok_s: 71.4,  ttft_ms: 31.8}
+    int8_w8a16:  {weight_gib: 4.532, vram_need_gib: 5.674, t_step_ms: 9.03,  upper_bound_tok_s: 110.7, ttft_ms: 31.8}
+    int4_w4a16:  {weight_gib: 2.840, vram_need_gib: 3.983, t_step_ms: 6.40,  upper_bound_tok_s: 156.2, ttft_ms: 31.8}
+    fp8_e4m3:    {weight_gib: 4.320, vram_need_gib: 5.463, t_step_ms: 8.39,  upper_bound_tok_s: 119.2, ttft_ms: 31.8, not_covered: "无 FP8 预量化样本"}
+    fp4_nvfp4:   {weight_gib: 2.629, vram_need_gib: 3.771, t_step_ms: 5.51,  upper_bound_tok_s: 181.6, ttft_ms: 31.8, not_covered: "RDNA 无 FP4 硬件路径"}
+  vram_break_line_b_params: {bf16: 7.8, int8_w8a16: 12.9, int4_w4a16: 20.6, fp8_e4m3: 13.6, fp4_nvfp4: 22.3}
+  stored_at: "2026-11-06T09:35:23Z"    # 先于本章任何真机测量
+
+measurement_plan:
+  warmup: 5                            # 每配置 5 次预热（不计入）
+  samples: 10                          # 每配置 10 次计时，取中位数
+  rounds: 1                            # 服务器式负载不重复整轮（方差由 10 次样本覆盖）
+  timeout_s: 600
+  round_budget_s: 3600
+  calibration_configs:                 # 拟合/归因用（dequant 系数、sim↔实测 gap 分解），9070 XT
+    - vllm_bf16_9070xt                 # HF bf16 checkpoint，vLLM 0.29（enforce_eager，u=0.9，mml=4096）
+    - llamacpp_f16_9070xt              # F16 GGUF，引擎对照（与 vllm_bf16 同名义格式）
+    - llamacpp_q8_9070xt               # Q8_0 GGUF
+    - llamacpp_q4_9070xt               # Q4_K_M GGUF
+  holdout_configs:                     # 只评测、不参与拟合；用后即烧
+    - llamacpp_f16_7900xtx             # 辅助卡跨架构（gfx1100），同 512/128 协议
+    - llamacpp_q8_7900xtx
+    - llamacpp_q4_7900xtx
+  not_covered:
+    - fp8_e4m3                         # 本机无 FP8 预量化样本（9070 XT 有 ai_f8 指令但无 checkpoint）
+    - fp4_nvfp4                        # RDNA 无 FP4 路径
+    - vllm_dense_int8_int4             # vLLM 0.29 在线量化 shorthand 仅覆盖 MoE；dense 动态 INT8/INT4 走 llama.cpp
+
+acceptance:
+  thresholds:
+    err_step_time: "<20%（dequant 系数经 kernel trace 校准后）"
+    vram_three_caliber: "公式/引擎/设备三口径残差逐字节归因或标 unresolved"
+    ppl_rel_budget: "≤1.10（vs BF16）；FP8/FP4 无参考值"
+  decision_rule: >
+    校准集（9070 XT 四配置）拟合 dequant 系数与 gap 分解，分解必须合计闭合到总差；
+    留出集（7900 XTX）只验证、不回头调参；INT4 若实测低于 BF16，按 kernel trace
+    归因（未向量化 dequant / 临时 f16 落盘）后重标系数，仍不闭合则留 unresolved。

@@ -1,0 +1,23 @@
+{
+  "container": "ch4-mlsys",
+  "source_model": "/app/models/Qwen3-4B (HF BF16)",
+  "converter": {
+    "f16": "llama.cpp b12169 convert_hf_to_gguf.py --outtype f16",
+    "q8_0": "llama-quantize Q8_0 from f16",
+    "q4_k_m": "llama-quantize Q4_K_M from f16"
+  },
+  "n_params": 4022600000,
+  "files": {
+    "f16": {"path": "/app/gguf/qwen3-4b-f16.gguf", "bytes": 8051285408,
+             "gib": 7.488, "eff_bpw": 2.0015,
+             "note": "embed/lm_head/norms f16，其余 f16"},
+    "q8_0": {"path": "/app/gguf/qwen3-4b-q8_0.gguf", "bytes": 4280405408,
+             "gib": 3.984, "eff_bpw": 1.0641,
+             "llama_quantize_report": "model size 7672.62 MiB (16.00 BPW) -> quant size 4076.43 MiB (8.50 BPW)"},
+    "q4_k_m": {"path": "/app/gguf/qwen3-4b-q4_k_m.gguf", "bytes": 2497280928,
+               "gib": 2.322, "eff_bpw": 0.6208,
+               "note": "2/3 张量 Q4_K + 1/3 Q5_K，embed/norms 保持 f16 拉高整体 bpw（ledger 模型 0.625）"}
+  },
+  "note": "eff_bpw = 文件字节 / 4.0226e9 参数（含 GGUF header 与 f16 保留张量开销），用于对账时的引擎口径锚点",
+  "timestamp_utc": "2026-11-06T09:44:00Z"
+}

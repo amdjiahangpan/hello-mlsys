@@ -1,0 +1,28 @@
+{
+  "model": "/app/gguf/qwen3-4b-f16.gguf",
+  "corpus": "/app/eval/wikitext-2-test.txt",
+  "protocol": {
+    "chunk_tokens": 1024,
+    "batch": 512,
+    "first_token_per_chunk_excluded": true,
+    "ppl_def": "exp(sum(-log p(x_i|x_<i)) / n_tokens)",
+    "note": "chunk 间无跨窗上下文；尾部不足 1 chunk 的 token 丢弃"
+  },
+  "ppl": 13.3078,
+  "std": 0.12085,
+  "n_tokens": 297693,
+  "n_chunks": 291,
+  "n_corpus_tokens": 298939,
+  "tokens_dropped_tail": 955,
+  "misses": null,
+  "misses_fixed": null,
+  "engine": {
+    "llama_cpp": "b12169",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "vram_gib": 15.92,
+    "note": "HIP_VISIBLE_DEVICES=1 → 宿主 9070 XT"
+  },
+  "wall_s": 60.66,
+  "log": "/app/ppl_f16_9070.log",
+  "timestamp_utc": "2026-11-06T10:34:40Z"
+}

@@ -1,0 +1,14 @@
+{
+  "weights_gib": 7.56,
+  "consumed_gib": 8.11,
+  "activation_gib": 0.15,
+  "cudagraph_gib": 0.0,
+  "free_mem_gib": 15.86,
+  "total_mem_gib": 15.92,
+  "target_gib": 14.33,
+  "kv_available_gib": 6.07,
+  "kv_tokens": 44208,
+  "non_weight_gib": 0.55,
+  "source_log": "results/vllm_startup_bf16_9070xt.log",
+  "tag": "vllm_bf16_9070xt"
+}

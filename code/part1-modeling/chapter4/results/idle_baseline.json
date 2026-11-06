@@ -1,0 +1,25 @@
+{
+  "purpose": "CH4 设备口径零点：两卡空闲 VRAM（宿主 rocm-smi）",
+  "gpus": {
+    "gpu0_rx_7900_xtx": {
+      "used_bytes": 28004352,
+      "used_gib": 0.0261
+    },
+    "gpu1_rx_9070_xt": {
+      "used_bytes": 59912192,
+      "used_gib": 0.0558
+    }
+  },
+  "environment": {
+    "timestamp_utc": "2026-11-06T09:41:52Z",
+    "python": "3.13.11",
+    "os": "Linux-6.14.0-37-generic-x86_64-with-glibc2.41",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "gpu_arch": {
+      "AMD Radeon RX 7900 XTX": "gfx1100",
+      "AMD Radeon RX 9070 XT": "gfx1201"
+    },
+    "vram_gib": 15.92,
+    "driver": "6.16.13"
+  }
+}

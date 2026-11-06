@@ -1,0 +1,29 @@
+{
+  "model": "/app/models/Qwen3-4B-FP8",
+  "corpus": "/app/eval/wikitext-2-test.txt",
+  "protocol": {
+    "chunk_tokens": 1024,
+    "overlap": 0,
+    "first_token_per_chunk_excluded": true,
+    "ppl_def": "exp(sum(-log p(x_i|x_<i)) / n_tokens)",
+    "topk": 50,
+    "miss_correction": "prompt_logprobs=vocab_size 单点补算"
+  },
+  "ppl": 15.462,
+  "nll": 817810.88,
+  "n_tokens": 298647,
+  "n_windows": 292,
+  "n_corpus_tokens": 298939,
+  "misses": 0,
+  "misses_fixed": 0,
+  "engine": {
+    "vllm": "0.29.1.dev0+g98dff2a81.d20261002",
+    "torch": "2.13.0+rocm10.1.0",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "vram_gib": 15.92,
+    "note": "HIP_VISIBLE_DEVICES=1 → 宿主 9070 XT"
+  },
+  "engine_init_s": 72.8,
+  "wall_s": 184.0,
+  "timestamp_utc": "2026-11-06T12:02:05Z"
+}

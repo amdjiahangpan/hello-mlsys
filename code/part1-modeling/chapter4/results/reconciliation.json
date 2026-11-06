@@ -1,0 +1,418 @@
+{
+  "timestamp_utc": "2026-11-06T12:02:15Z",
+  "purpose": "CH4 三口径对账：公式 × 引擎 × 设备；预测 × 实测",
+  "speed": {
+    "latency_vllm_bf16_9070xt.json": {
+      "tag": "vllm_bf16_9070xt",
+      "engine": "vllm",
+      "meas": {
+        "ttft_ms_med": 58.275,
+        "tpot_ms_med": 19.518,
+        "tok_s": 51.2
+      },
+      "pred": {
+        "t_pred_ms": 14.015,
+        "pred_toks_s": 71.4,
+        "rate_limited_by": "memory",
+        "t_comp_ms": 0.062,
+        "t_mem_ms": 14.015,
+        "t_dequant_alu_ms": 0.0
+      },
+      "pred_toks_over_meas": 1.395,
+      "meas_over_pred": 0.717,
+      "pred_ttft_ms": 31.8
+    },
+    "latency_vllm_fp8_e4m3_9070xt.json": {
+      "tag": "vllm_fp8_e4m3_9070xt",
+      "engine": "vllm",
+      "meas": {
+        "ttft_ms_med": 85.045,
+        "tpot_ms_med": 35.653,
+        "tok_s": 28.0
+      },
+      "pred": {
+        "t_pred_ms": 8.389,
+        "pred_toks_s": 119.2,
+        "rate_limited_by": "memory",
+        "t_comp_ms": 0.062,
+        "t_mem_ms": 8.136,
+        "t_dequant_alu_ms": 0.252
+      },
+      "pred_toks_over_meas": 4.257,
+      "meas_over_pred": 0.235,
+      "pred_ttft_ms": 31.8
+    },
+    "latency_llamacpp_f16_9070xt.json": {
+      "tag": "llamacpp_f16_9070xt",
+      "engine": "llamacpp",
+      "meas": {
+        "ttft_ms_med": 25.03,
+        "tpot_ms_med": 18.073,
+        "tok_s": 55.3
+      },
+      "pred": {
+        "t_pred_ms": 14.015,
+        "pred_toks_s": 71.4,
+        "rate_limited_by": "memory",
+        "t_comp_ms": 0.062,
+        "t_mem_ms": 14.015,
+        "t_dequant_alu_ms": 0.0
+      },
+      "pred_toks_over_meas": 1.291,
+      "meas_over_pred": 0.775,
+      "pred_ttft_ms": 31.8
+    },
+    "latency_llamacpp_q8_0_9070xt.json": {
+      "tag": "llamacpp_q8_0_9070xt",
+      "engine": "llamacpp",
+      "meas": {
+        "ttft_ms_med": 17.26,
+        "tpot_ms_med": 10.48,
+        "tok_s": 95.4
+      },
+      "pred": {
+        "t_pred_ms": 9.033,
+        "pred_toks_s": 110.7,
+        "rate_limited_by": "memory",
+        "t_comp_ms": 0.062,
+        "t_mem_ms": 8.528,
+        "t_dequant_alu_ms": 0.505
+      },
+      "pred_toks_over_meas": 1.16,
+      "meas_over_pred": 0.862,
+      "pred_ttft_ms": 31.8
+    },
+    "latency_llamacpp_q4_k_m_9070xt.json": {
+      "tag": "llamacpp_q4_k_m_9070xt",
+      "engine": "llamacpp",
+      "meas": {
+        "ttft_ms_med": 14.135,
+        "tpot_ms_med": 7.606,
+        "tok_s": 131.5
+      },
+      "pred": {
+        "t_pred_ms": 6.403,
+        "pred_toks_s": 156.2,
+        "rate_limited_by": "memory",
+        "t_comp_ms": 0.062,
+        "t_mem_ms": 5.393,
+        "t_dequant_alu_ms": 1.009
+      },
+      "pred_toks_over_meas": 1.188,
+      "meas_over_pred": 0.842,
+      "pred_ttft_ms": 31.8
+    },
+    "latency_llamacpp_f16_7900xtx.json": {
+      "tag": "llamacpp_f16_7900xtx",
+      "engine": "llamacpp",
+      "meas": {
+        "ttft_ms_med": 20.82,
+        "tpot_ms_med": 12.075,
+        "tok_s": 82.8
+      },
+      "pred": {
+        "t_pred_ms": 9.343,
+        "pred_toks_s": 107.0,
+        "rate_limited_by": "memory",
+        "t_comp_ms": 0.057,
+        "t_mem_ms": 9.343,
+        "t_dequant_alu_ms": 0.0
+      },
+      "pred_toks_over_meas": 1.292,
+      "meas_over_pred": 0.774,
+      "pred_ttft_ms": 29.0
+    },
+    "latency_llamacpp_q8_7900xtx.json": {
+      "tag": "llamacpp_q8_7900xtx",
+      "engine": "llamacpp",
+      "meas": {
+        "ttft_ms_med": 16.83,
+        "tpot_ms_med": 8.834,
+        "tok_s": 113.2
+      },
+      "pred": {
+        "t_pred_ms": 6.159,
+        "pred_toks_s": 162.4,
+        "rate_limited_by": "memory",
+        "t_comp_ms": 0.057,
+        "t_mem_ms": 5.686,
+        "t_dequant_alu_ms": 0.473
+      },
+      "pred_toks_over_meas": 1.435,
+      "meas_over_pred": 0.697,
+      "pred_ttft_ms": 29.0
+    },
+    "latency_llamacpp_q4_k_m_7900xtx.json": {
+      "tag": "llamacpp_q4_k_m_7900xtx",
+      "engine": "llamacpp",
+      "meas": {
+        "ttft_ms_med": 14.34,
+        "tpot_ms_med": 6.806,
+        "tok_s": 146.9
+      },
+      "pred": {
+        "t_pred_ms": 4.542,
+        "pred_toks_s": 220.2,
+        "rate_limited_by": "memory",
+        "t_comp_ms": 0.057,
+        "t_mem_ms": 3.595,
+        "t_dequant_alu_ms": 0.947
+      },
+      "pred_toks_over_meas": 1.499,
+      "meas_over_pred": 0.667,
+      "pred_ttft_ms": 29.0
+    }
+  },
+  "vram": {
+    "vllm_bf16_rx_9070_xt": {
+      "formula_vram_need_gib": 8.635,
+      "formula_w_gib_gguf_aware": 7.493,
+      "formula_w_gib_naive": 7.493,
+      "formula_kv_pool_gib": 0.562,
+      "engine": {
+        "weights_gib": 7.56,
+        "consumed_gib": 8.11,
+        "note": "vLLM 启动账本：weights 7.56 ≈ 公式 7.493（+0.9%）"
+      },
+      "device_peak_gib": 14.7797,
+      "device_idle_gib": 0.0558,
+      "device_delta_gib": 14.7239,
+      "residual_device_minus_formula_gib": 6.0889
+    },
+    "vllm_fp8_e4m3_rx_9070_xt": {
+      "formula_vram_need_gib": 5.463,
+      "formula_w_gib_gguf_aware": 4.32,
+      "formula_w_gib_naive": 3.981,
+      "formula_kv_pool_gib": 0.562,
+      "engine": {
+        "weights_gib": 4.38,
+        "consumed_gib": 5.42,
+        "note": "vLLM 启动账本（官方 FP8 e4m3 checkpoint，128×128 block）"
+      },
+      "device_peak_gib": 14.7875,
+      "device_idle_gib": 0.0558,
+      "device_delta_gib": 14.7317,
+      "residual_device_minus_formula_gib": 9.2687
+    },
+    "llamacpp_bf16_rx_9070_xt": {
+      "formula_vram_need_gib": 8.635,
+      "formula_w_gib_gguf_aware": 7.493,
+      "formula_w_gib_naive": 7.493,
+      "formula_kv_pool_gib": 0.562,
+      "engine": {
+        "gguf_gib": 7.488
+      },
+      "device_peak_gib": 8.6378,
+      "device_idle_gib": 0.0558,
+      "device_delta_gib": 8.582,
+      "residual_device_minus_formula_gib": -0.053
+    },
+    "llamacpp_int8_w8a16_rx_9070_xt": {
+      "formula_vram_need_gib": 5.674,
+      "formula_w_gib_gguf_aware": 4.532,
+      "formula_w_gib_naive": 4.215,
+      "formula_kv_pool_gib": 0.562,
+      "engine": {
+        "gguf_gib": 3.984
+      },
+      "device_peak_gib": 5.0011,
+      "device_idle_gib": 0.0558,
+      "device_delta_gib": 4.9453,
+      "residual_device_minus_formula_gib": -0.7287
+    },
+    "llamacpp_int4_w4a16_rx_9070_xt": {
+      "formula_vram_need_gib": 3.983,
+      "formula_w_gib_gguf_aware": 2.84,
+      "formula_w_gib_naive": 2.341,
+      "formula_kv_pool_gib": 0.562,
+      "engine": {
+        "gguf_gib": 2.322
+      },
+      "device_peak_gib": 3.3363,
+      "device_idle_gib": 0.0558,
+      "device_delta_gib": 3.2805,
+      "residual_device_minus_formula_gib": -0.7025
+    },
+    "llamacpp_bf16_rx_7900_xtx": {
+      "formula_vram_need_gib": 8.635,
+      "formula_w_gib_gguf_aware": 7.493,
+      "formula_w_gib_naive": 7.493,
+      "formula_kv_pool_gib": 0.562,
+      "engine": {
+        "gguf_gib": 7.488
+      },
+      "device_peak_gib": 8.6331,
+      "device_idle_gib": 0.0261,
+      "device_delta_gib": 8.607,
+      "residual_device_minus_formula_gib": -0.028
+    },
+    "llamacpp_int8_w8a16_rx_7900_xtx": {
+      "formula_vram_need_gib": 5.674,
+      "formula_w_gib_gguf_aware": 4.532,
+      "formula_w_gib_naive": 4.215,
+      "formula_kv_pool_gib": 0.562,
+      "engine": {
+        "gguf_gib": 3.984
+      },
+      "device_peak_gib": 5.0681,
+      "device_idle_gib": 0.0261,
+      "device_delta_gib": 5.042,
+      "residual_device_minus_formula_gib": -0.632
+    },
+    "llamacpp_int4_w4a16_rx_7900_xtx": {
+      "formula_vram_need_gib": 3.983,
+      "formula_w_gib_gguf_aware": 2.84,
+      "formula_w_gib_naive": 2.341,
+      "formula_kv_pool_gib": 0.562,
+      "engine": {
+        "gguf_gib": 2.322
+      },
+      "device_peak_gib": 3.4987,
+      "device_idle_gib": 0.0261,
+      "device_delta_gib": 3.4726,
+      "residual_device_minus_formula_gib": -0.5104
+    }
+  },
+  "ppl": {
+    "ppl_vllm_bf16_9070xt.json": {
+      "ppl": 15.3487,
+      "n_tokens": 298647,
+      "misses": 0,
+      "misses_fixed": 0
+    },
+    "ppl_vllm_fp8_e4m3_9070xt.json": {
+      "ppl": 15.462,
+      "n_tokens": 298647,
+      "misses": 0,
+      "misses_fixed": 0,
+      "rel_vs_engine_base": 1.0074,
+      "within_budget_1.10": true
+    },
+    "ppl_llamacpp_f16_9070xt.json": {
+      "ppl": 13.3078,
+      "n_tokens": 297693,
+      "misses": null,
+      "misses_fixed": null,
+      "rel_vs_engine_base": 1.0,
+      "within_budget_1.10": true
+    },
+    "ppl_llamacpp_q8_0_9070xt.json": {
+      "ppl": 13.3643,
+      "n_tokens": 297693,
+      "misses": null,
+      "misses_fixed": null,
+      "rel_vs_engine_base": 1.0042,
+      "within_budget_1.10": true
+    },
+    "ppl_llamacpp_q4_k_m_9070xt.json": {
+      "ppl": 13.5406,
+      "n_tokens": 297693,
+      "misses": null,
+      "misses_fixed": null,
+      "rel_vs_engine_base": 1.0175,
+      "within_budget_1.10": true
+    }
+  },
+  "ppl_summary": {
+    "base_vllm_bf16": 15.3487,
+    "base_llamacpp_f16": 13.3078,
+    "cross_engine_offset": 1.1534,
+    "cross_engine_note": "vLLM bf16 / llama.cpp F16 之比；含协议差（292 窗/298,647 token vs 291 chunk/297,693 token，chunk 间无跨窗上下文）与 bf16→f16 GGUF 表示差；只作记录，不进质量预算"
+  },
+  "dequant_decode_9070": {
+    "f16": {
+      "gpu_total_ms": 2161.2,
+      "gpu_ms_per_step": 16.8844,
+      "standalone_dequant_ms": 0.0,
+      "standalone_dequant_pct": 0.0,
+      "class_pct": {
+        "gemv_matmul": 99.09,
+        "norm_act": 0.61,
+        "other": 0.29
+      },
+      "top_kernels": [
+        "void mul_mat_vec_f<__half, float, 1, 256, true, false>(__half const*, float const*, int const*, ",
+        "void mul_mat_vec_f<__half, __half, 1, 256, true, false>(__half const*, float const*, int const*,",
+        "void mul_mat_vec_f<__half, __half, 1, 256, false, false>(__half const*, float const*, int const*",
+        "void mul_mat_vec_f<__half, __half, 2, 256, false, false>(__half const*, float const*, int const*",
+        "void flash_attn_tile<128, 128, 1, 4, false>(char const*, char const*, char const*, char const*, ",
+        "void rms_norm_f32<1024, 1, true, true, false, false>(float const*, float*, int, int, int, long, ",
+        "void rms_norm_mul_rope_f32<256, false, __half>(float const*, __half*, int, int, int, long, long,",
+        "void rms_norm_mul_rope_f32<256, false, float>(float const*, float*, int, int, int, long, long, l"
+      ],
+      "ledger_t_mem_ms": 14.015,
+      "ledger_t_dequant_alu_ms": 0.0,
+      "exposed_over_t_mem_ms_per_step": 2.8694
+    },
+    "q8_0": {
+      "gpu_total_ms": 1065.43,
+      "gpu_ms_per_step": 8.3237,
+      "standalone_dequant_ms": 0.0,
+      "standalone_dequant_pct": 0.0,
+      "class_pct": {
+        "gemv_matmul": 99.39,
+        "other": 0.59,
+        "norm_act": 0.02
+      },
+      "top_kernels": [
+        "void mul_mat_vec_q<(ggml_type)8, 1, true, false, false>(void const*, void const*, int const*, gg",
+        "void mul_mat_vec_q<(ggml_type)8, 1, false, false, false>(void const*, void const*, int const*, g",
+        "quantize_q8_1(float const*, void*, long, long, long, long, long, unsigned int, HIP_vector_type<u",
+        "void flash_attn_tile<128, 128, 1, 4, false>(char const*, char const*, char const*, char const*, ",
+        "void rms_norm_f32<1024, 1, true, true, false, false>(float const*, float*, int, int, int, long, ",
+        "void mul_mat_vec_q<(ggml_type)8, 2, false, false, false>(void const*, void const*, int const*, g",
+        "void rms_norm_mul_rope_f32<256, false, __half>(float const*, __half*, int, int, int, long, long,",
+        "void rms_norm_mul_rope_f32<256, false, float>(float const*, float*, int, int, int, long, long, l"
+      ],
+      "ledger_t_mem_ms": 8.528,
+      "ledger_t_dequant_alu_ms": 0.505,
+      "exposed_over_t_mem_ms_per_step": -0.2043
+    },
+    "q4_k_m": {
+      "gpu_total_ms": 783.69,
+      "gpu_ms_per_step": 6.1226,
+      "standalone_dequant_ms": 0.0,
+      "standalone_dequant_pct": 0.0,
+      "class_pct": {
+        "gemv_matmul": 98.99,
+        "other": 0.96,
+        "norm_act": 0.05
+      },
+      "top_kernels": [
+        "void mul_mat_vec_q<(ggml_type)12, 1, true, false, false>(void const*, void const*, int const*, g",
+        "void mul_mat_vec_q<(ggml_type)12, 1, false, false, false>(void const*, void const*, int const*, ",
+        "void mul_mat_vec_q<(ggml_type)14, 1, true, false, false>(void const*, void const*, int const*, g",
+        "void mul_mat_vec_q<(ggml_type)14, 1, false, false, false>(void const*, void const*, int const*, ",
+        "quantize_q8_1(float const*, void*, long, long, long, long, long, unsigned int, HIP_vector_type<u",
+        "void flash_attn_tile<128, 128, 1, 4, false>(char const*, char const*, char const*, char const*, ",
+        "void rms_norm_f32<1024, 1, true, true, false, false>(float const*, float*, int, int, int, long, ",
+        "void rms_norm_mul_rope_f32<256, false, __half>(float const*, __half*, int, int, int, long, long,"
+      ],
+      "ledger_t_mem_ms": 5.393,
+      "ledger_t_dequant_alu_ms": 1.009,
+      "exposed_over_t_mem_ms_per_step": 0.7296
+    }
+  },
+  "dequant_finding": "无独立 dequant kernel：dequant 融合进 mul_mat_vec_q GEMV（Q8_0=(ggml_type)8，Q4_K=(ggml_type)12，Q5_K=(ggml_type)14），trace 中 dequant 类 ≈0%；η_alu 不可独立标定，ledger 串行 t_dequant 保留为保守上界；exposed_over_t_mem_ms_per_step = 每步 GPU 时长 − 纯权重带宽下界（含 attention/norm 的 GPU 时间，非纯 dequant）",
+  "inputs": [
+    "gguf_files.json",
+    "idle_baseline.json",
+    "kernel_trace_rx_9070_xt.json",
+    "latency_llamacpp_f16_7900xtx.json",
+    "latency_llamacpp_f16_9070xt.json",
+    "latency_llamacpp_q4_k_m_7900xtx.json",
+    "latency_llamacpp_q4_k_m_9070xt.json",
+    "latency_llamacpp_q8_0_9070xt.json",
+    "latency_llamacpp_q8_7900xtx.json",
+    "latency_vllm_bf16_9070xt.json",
+    "latency_vllm_fp8_e4m3_9070xt.json",
+    "ppl_llamacpp_f16_9070xt.json",
+    "ppl_llamacpp_q4_k_m_9070xt.json",
+    "ppl_llamacpp_q8_0_9070xt.json",
+    "ppl_vllm_bf16_9070xt.json",
+    "ppl_vllm_fp8_e4m3_9070xt.json",
+    "quant_ledger_9070xt.json",
+    "vllm_startup_bf16_9070xt.json",
+    "vllm_startup_fp8_e4m3_9070xt.json"
+  ]
+}
