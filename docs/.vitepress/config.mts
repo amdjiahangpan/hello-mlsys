@@ -13,6 +13,12 @@ export default defineConfig({
     nav: navItems,
 
     sidebar,
+    sidebarMenuLabel: '全书目录',
+    returnToTopLabel: '返回顶部',
+    darkModeSwitchLabel: '外观',
+    lightModeSwitchTitle: '切换至浅色',
+    darkModeSwitchTitle: '切换至深色',
+    skipToContentLabel: '跳转到正文',
 
     search: {
       provider: 'local',

@@ -28,6 +28,43 @@
 
 🚧 待上线
 
+## 本地预览与构建
+
+站点使用 VitePress 默认主题，直接把 `docs/` 中的 Markdown 渲染为教程页面，提供全书目录、章节导航、站内搜索与深浅色切换。
+
+使用 Node.js 22.12 或更新版本，在仓库根目录运行：
+
+```bash
+npm install
+npm run docs:dev
+```
+
+打开终端显示的本地地址（默认 `http://localhost:5173/hello-mlsys/`）。修改 Markdown 后，页面会自动刷新。
+
+构建与检查：
+
+```bash
+npm run docs:check-outline
+npm run docs:build
+npm run docs:preview
+```
+
+静态页面生成到 `docs/.vitepress/dist/`。`docs/.vitepress/outline.mjs` 是章节信息的统一入口，`docs:sync-outline` 会同步 README、全书目录页与章节元数据，保留已有正文。`docs/curriculum/index.md` 是生成文件，请通过大纲修改。
+
+### GitHub 自动构建与发布
+
+仓库的 `.github/workflows/deploy.yml` 已配置自动流程：
+
+- 向 `main` 推送提交（包括合并 PR）：自动安装依赖、构建并发布到 GitHub Pages。
+- 向 `main` 提交 PR：检查站点能否构建，合并后再发布。
+- 在 Actions 中手动运行工作流：选择 `main` 可以重新构建并发布；其他分支只构建。
+
+首次发布需要**仓库管理员**在 Settings → Pages 中将 Build and deployment 的 Source 设为 **GitHub Actions**。如果该选项不可用，请管理员确认当前私有仓库的 Pages 使用权限与站点访问设置。
+
+管理员完成这一次设置、代码合并到 `main` 后，后续只需修改 Markdown、提交并推送，网页就会随工作流更新。发布状态可在 Actions 的 **Deploy VitePress site to Pages** 中查看，成功后的网址以部署结果为准。
+
+构建使用 Node.js 22 和 `npm ci`，请将 `package-lock.json` 一并提交；修改依赖时运行 `npm install` 更新锁文件。当前站点路径由 `docs/.vitepress/config.mts` 中的 `base: '/hello-mlsys/'` 配置。
+
 ## 项目结构
 
 ```text

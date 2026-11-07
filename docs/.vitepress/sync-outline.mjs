@@ -94,9 +94,42 @@ async function syncReadme() {
   await writeIfChanged(path, next)
 }
 
+async function syncCurriculum() {
+  const lines = [
+    '---',
+    'title: 全书目录',
+    'description: Hello MLSys 的学习路线、全部章节与附录。',
+    'outline: [2, 2]',
+    'editLink: false',
+    'prev: false',
+    'next: false',
+    '---',
+    '',
+    '<!-- 此页由 docs/.vitepress/sync-outline.mjs 生成，请在 outline.mjs 中维护章节。 -->',
+    '',
+    '# 全书目录',
+    '',
+    '从入门开始，依次学习建模与校准，再完成与 AI 一起设计的综合实践。选修案例和附录可按需查阅。',
+    '',
+    '::: info 阅读说明',
+    '教程处于 Alpha 阶段，部分章节仍为大纲或待补充内容，请以各章现有正文与验证记录为准。',
+    ':::',
+  ]
+
+  for (const part of parts) {
+    lines.push('', `## ${part.readmeTitle}`, '')
+    for (const chapter of chapters.filter((item) => item.part === part)) {
+      lines.push(`- [${chapterHeading(chapter)}](${chapter.path}) — ${chapter.summary}`)
+    }
+  }
+
+  await writeIfChanged(join(repoRoot, 'docs/curriculum/index.md'), `${lines.join('\n')}\n`)
+}
+
 async function main() {
   await syncChapters()
   await syncReadme()
+  await syncCurriculum()
 
   if (checkOnly && changedFiles.length > 0) {
     console.error('Docs outline is out of sync:')

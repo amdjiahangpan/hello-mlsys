@@ -1,4 +1,4 @@
-// 全书大纲：站点导航、侧边栏、章节骨架与 README 目录均由此文件生成。
+// 全书大纲：站点导航、侧边栏、全书目录、章节骨架与 README 目录均由此文件生成。
 // 修改后运行 `npm run docs:sync-outline` 同步。
 
 export const repoUrl = 'https://github.com/amdjiahangpan/hello-mlsys'
@@ -304,22 +304,23 @@ export function chapterHeading(chapter) {
   return chapter.label ? `${chapter.label} ${chapter.title}` : chapter.title
 }
 
-export const navItems = parts.map((part) => ({
-  text: part.navText,
-  link: part.chapters[0].path,
-}))
+export const navItems = [
+  { text: '首页', link: '/' },
+  { text: '全书目录', link: '/curriculum/' },
+  {
+    text: '阅读教程',
+    items: parts.map((part) => ({
+      text: part.navText,
+      link: part.chapters[0].path,
+    })),
+  },
+]
 
-export const sidebar = Object.fromEntries(
-  parts.map((part) => [
-    part.prefix,
-    [
-      {
-        text: part.title,
-        items: part.chapters.map((chapter) => ({
-          text: chapterHeading(chapter),
-          link: chapter.path,
-        })),
-      },
-    ],
-  ]),
-)
+export const sidebar = parts.map((part) => ({
+  text: part.readmeTitle,
+  collapsed: false,
+  items: part.chapters.map((chapter) => ({
+    text: chapterHeading(chapter),
+    link: chapter.path,
+  })),
+}))

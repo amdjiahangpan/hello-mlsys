@@ -6,7 +6,6 @@ docs/.vitepress/cache/
 __pycache__/
 .venv/
 .env
-package-lock.json
 WRITING_GUIDE.md
 code/part1-modeling/chapter1/figs/fonts/
 code/part1-modeling/chapter2/figs/fonts/
