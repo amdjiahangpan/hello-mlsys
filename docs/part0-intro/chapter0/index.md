@@ -49,10 +49,11 @@ T ≈ D / BW  +  O / (R · η)  +  L
 | --- | --- | --- |
 | **hello-rocm** | 环境怎么装，程序怎么跑起来 | 环境安装与 ROCm 部署一律引用它，本书不复述 |
 | **hello-gpu** | 单个算子为什么慢、怎么优化（kernel 级） | 算子/kernel 调优是它的主场；本书把算子当"黑盒成本"，只关心它的 FLOPs 与字节数 |
-| **MLSys·im** | 系统建模的方法与现成模拟器（roofline、372 个公式、102 份硬件参数） | 本书模拟器工具链的解析层直接借它的方法与公式 |
+| **MLSys·im** | 系统建模的方法与现成模拟器（roofline、372 个公式、102 份硬件参数） | **参考模拟器**：本书解析层借它的方法与公式，兼作对照学生手算的第三方标尺 |
+| **mlsys-simulator**（自研） | 课程自研的确定性 CPU 服务模拟器——服务级性能怎么估（continuous batching、KV 内存压力、TP/PP、Prefix Cache、Chunked Prefill、多副本路由） | 本书的主工具（§1.1/§1.4 的 simulate/predict 六元组接口即它）；解析层借 MLSys·im 的方法与公式；v1.15 起支持声明式量化权重/KV 存储与反量化开销；私有仓库，许可证待定 |
 | **hello-mlsys（本书）** | **应该设计什么系统、怎么知道它有效** | 用模拟指导系统设计，在 AMD 真机上验证和校准 |
 
-一句话分工：**hello-rocm 教你跑起来，hello-gpu 教你把算子做快，hello-mlsys 教你用模拟指导系统设计，并在 AMD 真机上验证和校准。** 训练显存优化、K8s 集群调度属于平台侧，作为选读指向 hello-ai-infra-platform，不在本书主线。
+一句话分工：**hello-rocm 教你跑起来，hello-gpu 教你把算子做快，MLSys·im（mlsysim）提供广泛使用的系统建模方法与参考模拟器，hello-mlsys 用自研 msys-simulator（确定性 CPU 服务模拟器）教你用模拟指导系统设计，并在 AMD 真机上验证和校准。** 训练显存优化、K8s 集群调度属于平台侧，作为选读指向 hello-ai-infra-platform，不在本书主线。
 
 ### 全书的学习闭环：预测 → 实测 → 校准 → 决策
 
