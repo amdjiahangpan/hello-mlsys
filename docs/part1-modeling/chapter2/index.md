@@ -11,7 +11,7 @@ description: "Hello MLSys · 第 2 章 第一次真机 Profile 与性能校准 �
 
 ## 本章导读
 
-> 本章第一次把模拟器预测带上真机：先跑通最小 Profile，再用校准集拟合修正系数，最后在留出配置上检验修正能否泛化。读完后，你应该能完成一次完整的"预测 → 实测 → 校准 → 留出验证"。
+> 本章第一次把模拟器预测带上真机：先跑通最小 Profile，再用校准集拟合修正系数，最后在留出配置上检验修正能否泛化。读完后，你应该能完成一次完整的"预测 → 实测 → 校准 → 留出验证"，并在没有 GPU 时知道该从哪条 CPU 参照线入手（§2.7）。
 
 ## 教学目标
 
@@ -223,6 +223,26 @@ description: "Hello MLSys · 第 2 章 第一次真机 Profile 与性能校准 �
 
 **回扣主线**：η/β 在饱和/流式算子上校准，正确预测了两个 phase 的 **roofline 部分**（GEMM/attention），但对 **pointwise 核**与**低利用率 regime** 系统性低估（decode Σself 是预测的 2.2×、prefill 2.4×）。**干净 wall** 在 decode 由发射 + 未建模双重主导（busy 49.6%）、在 prefill 接近 GPU 饱和（busy 95.0%）——**两系数模型既不建模 T_launch、也不建模 pointwise 核**，这正是后续章节的发力点：用 **CUDA Graphs / torch.compile** 消发射、用 **batching / 融合** 抬高 per-kernel 利用率、并把 pointwise 核的 roofline 补进预测。
 
+## 2.7 CPU 参照线（无 GPU 学员的预测入口）
+
+&emsp;&emsp;前面 §2.1–§2.6 全部在 9070 XT 上跑。本章补一条**CPU 参照线**，做两件成本低、教学价值高的事：① 量化"GPU 加速到底有多少"——同一个 GGUF、同一套参数，纯 CPU 与全层上卡各跑一遍，直接取 CPU→GPU 的 speedup；② 给**没有 GPU 的学员**一条可复现的 CPU 预测入口（飞书 C01 缺口"补 CPU 预测入口"的落点，呼应 Ch0 §0.2 无设备替代路径：第 1 章 Roofline、第 3 章显存账纯 CPU 即可完成，只缺本 §2.1–§2.6 的真机校准）。
+
+**方法**（`cpu_refline.py`，产物 `results/cpu_refline_9070xt.json`）：llama.cpp 0.9.0-dev（build 1），同一 Qwen3-0.6B **F16** GGUF（由 HF BF16 转出），`llama-bench` 默认双测（**pp512** 预填充 + **tg128** 逐 token 生成，batch=1），`-r 5`（另有 1 次内置 warmup）。**CPU**：`-ngl 0`（0 层上卡 = 纯 CPU）+ `-t 12`（物理核数；SMT 对 GEMM 帮助有限）；**9070 XT**：`HIP_VISIBLE_DEVICES=1`（容器内设备号 1）+ `-ngl 999`（全部层上卡）。取每条 **median tok/s**——首个实测 rep 有 warmup 凹陷（prefill 首样本可低近一半），median 对它免疫；decode 五次样本本身极紧（std 0.18 / 1.38 tok/s，CPU / GPU）。
+
+**同一 GGUF、同一引擎，CPU vs 9070 XT**（median tok/s）：
+
+| 阶段 | CPU（3900X 12 核，`-ngl 0`） | 9070 XT（`-ngl 999`） | GPU 加速 |
+| ---- | ---- | ---- | ---- |
+| decode B=1（tg128） | 17.16 | 162.28 | **9.45×** |
+| prefill S=512（pp512） | 3344.53 | 29984.5 | **8.97×** |
+
+&emsp;&emsp;读这张表要分两个**正交维度**，不能混：
+
+- **硬件维度（CPU→GPU，~9×）**：同一引擎、同一 GGUF，纯 CPU 换成全层上卡，decode 与 prefill 都提速约一个数量级（9.45× / 8.97×，两者相近）。**"GPU 加速到底有多少"的答案就是约 9×**——且 prefill 和 decode 加速比接近，不是"decode 才快、prefill 一般"。CPU 侧 decode **17.16 tok/s** 是无 GPU 学员在 0.6B 上能实测摸到的天花板：可复现、可预测（Roofline 对 CPU 同样成立，只是 ridge point 不同）。
+- **软件维度（引擎差异，4.75×）**：同一张 9070 XT 上，llama.cpp（融合 kernel + 全层上卡）decode **162.28 tok/s** vs 第 1 章 torch sdpa eager（`attn_implementation="sdpa"`，逐 kernel 发射）**34.13 tok/s**（`decode-B1-ctx1024`，median 29.30 ms，见 Ch1 `results/qwen_9070xt.json`）——**llama.cpp GPU 是同卡 torch eager 的 4.75×**。这正是 §2.6 的 T_launch 诊断的软件侧印证：torch eager 每步 1591 个逐 kernel 发射把 GPU 饿到 ~42% busy，llama.cpp 的融合 kernel 路径消掉了大部分发射成本。**引擎（调度 / kernel 融合）与硬件（CPU vs GPU）是两个正交维度**：CPU→GPU 是 ~9×（硬件），llama.cpp→torch eager 是 4.75×（软件），二者相乘才解释"从 CPU torch 到 GPU llama.cpp"的总加速。
+
+**无 GPU 学员怎么走**：本参照线 + Ch0 §0.2 的 T4 替代路径——第 1 章 Roofline 预测、第 3 章显存账本**纯 CPU 可完成**（本参照线就是它们的实测锚点），§2.1–§2.6 的真机 η/β 校准在 T4 下标注 `pending: 真机`，等真机到位后回填。协议与全部样本落 `results/cpu_refline_9070xt.json`，可重跑复现。
+
 ## 实验设计
 
 - **模拟器实验（预测 → 校准闭环）**：复用第 1 章标称预测，叠加本章 η/β 校准模型，逐组件输出 FLOPs/Bytes/AI/判定/t。核心动作是**先留痕（stored_at 先于实测）→ 实测 → 拟合 → 留出验证**，而不是"看实测再反推系数"。
@@ -233,6 +253,7 @@ description: "Hello MLSys · 第 2 章 第一次真机 Profile 与性能校准 �
   - 误差归因：`diag_clocks.py` → `results/clock_drift_9070xt.json`（fresh/sustained/hot GEMM + `rocm-smi` sclk/功耗/温度采样）；
   - 留出验证：`bench_cal.py`（holdout 部分）（GEMM 6144³ + LN/Softmax 16384×4096 + attn MHA16 S∈{512,1024}，预测先留痕）；
   - 端到端：`profile_e2e.py` → `results/e2e_1p7b_9070xt.json`（Qwen3-1.7B decode B=1 ctx=1024 + prefill S=512，干净 wall + 同条件 profile + 逐组件校准预测）。
+- **CPU 参照线（§2.7，无 GPU 学员入口，llama.cpp 0.9.0-dev）**：`cpu_refline.py`（宿主侧，`docker exec` llama-bench）→ `results/cpu_refline_9070xt.json`——同一 Qwen3-0.6B F16 GGUF，默认双测（pp512 + tg128，batch=1，`-r 5`）：CPU（`-ngl 0 -t 12`）vs 9070 XT（`HIP_VISIBLE_DEVICES=1 -ngl 999`），取 median tok/s。产出 CPU→GPU 加速比（decode 9.45× / prefill 8.97×）+ 同卡引擎差（llama.cpp GPU 162.28 vs torch sdpa eager 34.13 tok/s = 4.75×，交叉参考 Ch1 `results/qwen_9070xt.json`）。
 - **闭环与交付**：
   - **预测（测前留痕）**：第 1 章 nominal + 本章 η/β，`stored_at` 先于任何留出实测；
   - **实测（选点运行）**：6 个 `results/*.json`，协议与 config 见 §2.1–§2.6；
@@ -246,7 +267,8 @@ description: "Hello MLSys · 第 2 章 第一次真机 Profile 与性能校准 �
 - **误差归因三项**：① **降频 = 功耗墙而非温度**（sclk 2496→~2428 MHz、功耗钉死 ~333 W、温度仅到 67°C、GEMM 时间 60 s 内 +5.1% 漂移）——解释 8192³ GEMM η=0.473；② **内存碎片排除**（allocated/reserved 稳定）；③ **版本/架构不一致**（`rocprofv3 --kernel-trace` 可用、`rocprof-compute profile` 不支持 gfx1201 → 深计数器走 v3 PMC；profiler 开销是**每核发射的固定成本**，单核 GEMM ×1.01、1591 核 decode ×1.9，须干净/同条件读取）——均在准入/最小 Profile 阶段主动捕获。
 - **留出验证**：域内（GEMM/LN/Softmax 新形状）**±3.5%**，逐点系数贴合拟合值；域外（单 batch 注意力）+264%/+73%，**模型在低利用率处偏乐观**——这正是校准集设计的压力测试，也是 batching/融合章节的动机。
 - **端到端**：校准模型正确预测了两个 phase 的 **roofline 部分**（GEMM/attention），但**低估了实际 GPU 工作**（Σself 是预测的 2.2×/2.4×，缺口几乎全在 pointwise 核）；干净 wall（decode 30.1 ms / prefill 38.3 ms）在 decode 发射 + 未建模双重主导（干净 busy 49.6%、1591 核/步）、在 prefill 接近 GPU 饱和（busy 95.0%）——**两系数模型既不建模 T_launch、也不建模 pointwise 核**，CUDA Graphs / compile + batching 才是消它的路径。
-- **交付**：`code/part1-modeling/chapter2/` 下 6 个脚本 + 6 个 `results/*.json` + `figs/make_figs.py` + 4 张中文配图。
+- **CPU 参照线（§2.7，无 GPU 学员入口）**：同一 Qwen3-0.6B F16 GGUF、同一 llama.cpp，纯 CPU（3900X 12 核）vs 9070 XT 全层上卡，decode **9.45×** / prefill **8.97×**——"GPU 加速"约一个数量级且两 phase 相近；同卡 llama.cpp GPU 又比 torch sdpa eager 快 **4.75×**（§2.6 T_launch / 融合 kernel 的软件侧印证）。**硬件（CPU→GPU）与软件（引擎）是正交的两维**，无 GPU 学员用本线 + Ch0 §0.2 T4 替代路径（Ch1/Ch3 纯 CPU 可完成，真机 η/β 校准标 `pending: 真机`）。
+- **交付**：`code/part1-modeling/chapter2/` 下 7 个脚本 + 7 个 `results/*.json` + `figs/make_figs.py` + 4 张中文配图。
 
 ## 延伸阅读
 
@@ -254,6 +276,7 @@ description: "Hello MLSys · 第 2 章 第一次真机 Profile 与性能校准 �
 - 本书第 1 章 §1.4 上卡锚定：T_launch / GPU 饥饿诊断（本章 §2.6 的发射受限结论直接承接它），以及 SDPA / repeat_kv 口径。
 - 本书第 7 章（continuous batching）与第 9 章（PD 分离）：本章"发射受限 + 低利用率"结论的落点——batching 摊薄发射成本、抬高 attention 利用率，PD 分离把两种硬件 regime 拆开调度。
 - 本书第 3 章（显存账）：容量维度（什么放得下），与本章的速度维度（多快）互补。
+- llama.cpp `llama-bench`（§2.7 CPU 参照线工具：pp512/tg128 默认双测、`-o json`、`-ngl`/`-t`/`-r`；Qwen3-0.6B F16 GGUF 由 HF BF16 转出）——无 GPU 学员的 CPU 预测入口。
 - AMD `rocprofv3` 文档（kernel dispatch 追踪，gfx1201 可用；`--pmc` 深计数器需强制固定性能档，见 ROCm PR #7455）/ `rocprof-compute`（roofline 微架构计数，build 3.8.0 尚不支持 gfx1201）；PyTorch `torch.profiler`（HIP/CUDA activity，跨架构、可进程内嵌入）。
 - Williams, Waterman & Patterson, *"Roofline,"* CACM 2009（η 作为 kernel 效率、屋顶线的效率语义）；Dao et al., *"FlashAttention,"* 2022（§2.5 域外 attention 的融合动机）。
 - [hello-gpu / hello-rocm](https://github.com/datawhalechina/hello-gpu)（datawhalechina，GPU/ROCm 基础参考写法）。 https://www.ccs.tsukuba.ac.jp/wp-content/uploads/sites/14/2025/09/20.-Newer-tools-ROCprof-Trace-Decoder-and-Omnistat.pdf

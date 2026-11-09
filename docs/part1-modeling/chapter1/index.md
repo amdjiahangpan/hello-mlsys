@@ -352,8 +352,10 @@ metrics: { 每组件 FLOPs/Bytes/AI/判定/t_c, t_step, 吞吐上限, ... }
 | ---- | ---- |
 | 模型 | Qwen3-0.6B / Qwen3-1.7B / Qwen3-4B（BF16，config 以 HF 仓库为准，§0.2 硬件表） |
 | 硬件 | RX 9070 XT 16GB（T1，标称参数完整）；W7900D（T4，48 GB，≥4 卡，算力/带宽/互联参数待确认——T4 行走 CPU 预测路径，全部结论标注"待确认参数"，不混入 T1 结论） |
-| 负载 | prefill：b=1，S∈{128, 512, 2048}；decode：B∈{1, 4, 16}，平均 ctx=1024（closed-loop，与模拟器一致） |
+| 负载 | **离线 batch**（负载定义见 Ch0 §0.3）：prefill b=1，S∈{128, 512, 2048}；decode B∈{1, 4, 16}，平均 ctx=1024（closed-loop，与模拟器一致） |
 | 校准 | calibration=nominal（标称参数，η=1，T_fixed 未校准） |
+
+**轴从哪来**（负载定义见 Ch0 §0.3，本表是其"离线 batch"形式的具体取值）：离线 batch 没有到达时间，用**轴**而非逐条 trace 描述——可问的是"把某根轴扫过去，性能怎么变"。`S`（prefill 输入长度）取 128 / 512 / 2048：从短（S 增量尚小、发射地板占主导）到长（进入 compute-bound、S² attention 项显现），跨两个数量级、接近 2 的幂，正好覆盖"短 / 中 / 长"三档 prefill regime。`B`（decode batch）取 1 / 4 / 16：B=1 是 AI≈1 的纯 memory-bound 单点（§1.2 decode GEMM 的直觉陷阱），B 向 16 抬升演示"batching 把 GEMM 从 memory 斜坡推向 compute 屋顶"（AI≈B），但 ctx=1024 固定后 B 增大又让 KV 扫描开始接管——三点恰好跨"batching 救 GEMM"与"KV 接管"两个机制区，为第 7 章 continuous batching 埋下这根轴。`ctx=1024` 固定，保证各 decode 点同 ctx 可比。**这些是扫描轴，不是在线到达**——在线到达（到达间隔分布 + 输入/输出长度分布）与容量拐点在第 7 章用 DES 处理（Ch0 §0.3 负载定义的前向链接）。
 
 ### 任务 1：step 级宏分解（per-component 输出）
 

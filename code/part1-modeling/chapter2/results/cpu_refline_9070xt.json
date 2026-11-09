@@ -1,0 +1,138 @@
+{
+  "environment": {
+    "timestamp_utc": "2026-11-09T04:53:31Z",
+    "container": "ch4-mlsys",
+    "llama_cpp": "version: 0.9.0-dev (build 1, commit 3ed7284)",
+    "host_cpu": {
+      "logical_cpus": 24,
+      "os": "Linux-6.14.0-37-generic-x86_64-with-glibc2.41",
+      "model": "AMD Ryzen 9 3900X 12-Core Processor",
+      "physical_cores": 12,
+      "lscpu_model": "113"
+    },
+    "model": "Qwen3-0.6B",
+    "gguf": "/app/gguf/qwen3-0.6b-f16.gguf"
+  },
+  "protocol": {
+    "tool": "llama-bench (default suite: pp512 + tg128)",
+    "quant": "F16 (由 HF BF16 转出)",
+    "n_gpu_layers": {
+      "cpu": 0,
+      "gpu_9070xt": 999
+    },
+    "threads": 12,
+    "reps": 5,
+    "warmup": "1（llama-bench 内置）",
+    "gpu_selection": "HIP_VISIBLE_DEVICES=1（容器内设备号 1 = 9070 XT）"
+  },
+  "runs": {
+    "cpu": {
+      "device": "AMD Ryzen 9 3900X 12-Core Processor",
+      "pp512": {
+        "n_prompt": 512,
+        "n_gen": 0,
+        "n_gpu_layers": 0,
+        "n_threads": 12,
+        "flash_attn": -1,
+        "cpu_info": "AMD Ryzen 9 3900X 12-Core Processor",
+        "gpu_info": "AMD Radeon RX 7900 XTX, AMD Radeon RX 9070 XT",
+        "model_type": "qwen3 0.6B F16",
+        "avg_ts": 3015.198371,
+        "median_ts": 3344.53,
+        "stddev_ts": 780.102068,
+        "samples_ts": [
+          1624.62,
+          3344.53,
+          3416.38,
+          3426.74,
+          3263.72
+        ]
+      },
+      "tg128": {
+        "n_prompt": 0,
+        "n_gen": 128,
+        "n_gpu_layers": 0,
+        "n_threads": 12,
+        "flash_attn": -1,
+        "cpu_info": "AMD Ryzen 9 3900X 12-Core Processor",
+        "gpu_info": "AMD Radeon RX 7900 XTX, AMD Radeon RX 9070 XT",
+        "model_type": "qwen3 0.6B F16",
+        "avg_ts": 17.105389,
+        "median_ts": 17.1635,
+        "stddev_ts": 0.177921,
+        "samples_ts": [
+          17.2498,
+          16.86,
+          17.2705,
+          16.9832,
+          17.1635
+        ]
+      }
+    },
+    "gpu_9070xt": {
+      "device": "AMD Radeon RX 9070 XT",
+      "pp512": {
+        "n_prompt": 512,
+        "n_gen": 0,
+        "n_gpu_layers": 999,
+        "n_threads": 12,
+        "flash_attn": -1,
+        "cpu_info": "AMD Ryzen 9 3900X 12-Core Processor",
+        "gpu_info": "AMD Radeon RX 9070 XT",
+        "model_type": "qwen3 0.6B F16",
+        "avg_ts": 28052.661336,
+        "median_ts": 29984.5,
+        "stddev_ts": 3366.480594,
+        "samples_ts": [
+          22308.6,
+          27741.3,
+          29984.5,
+          30053.7,
+          30175.2
+        ]
+      },
+      "tg128": {
+        "n_prompt": 0,
+        "n_gen": 128,
+        "n_gpu_layers": 999,
+        "n_threads": 12,
+        "flash_attn": -1,
+        "cpu_info": "AMD Ryzen 9 3900X 12-Core Processor",
+        "gpu_info": "AMD Radeon RX 9070 XT",
+        "model_type": "qwen3 0.6B F16",
+        "avg_ts": 162.070575,
+        "median_ts": 162.28,
+        "stddev_ts": 1.379391,
+        "samples_ts": [
+          159.757,
+          162.072,
+          163.089,
+          163.154,
+          162.28
+        ]
+      }
+    }
+  },
+  "summary": {
+    "pp512_tok_s": {
+      "cpu": 3344.53,
+      "gpu_9070xt": 29984.5,
+      "gpu_over_cpu": 8.97
+    },
+    "tg128_tok_s": {
+      "cpu": 17.1635,
+      "gpu_9070xt": 162.28,
+      "gpu_over_cpu": 9.45,
+      "torch_eager_9070xt": 34.13239335921934,
+      "llamacpp_gpu_over_torch_gpu": 4.75
+    }
+  },
+  "cross_reference_torch_9070xt": {
+    "source": "chapter1/results/qwen_9070xt.json",
+    "engine": "torch sdpa eager (bf16)",
+    "device": "AMD Radeon RX 9070 XT",
+    "config_id": "decode-B1-ctx1024",
+    "median_ms": 29.29768180847168,
+    "tok_s_per_request": 34.13239335921934
+  }
+}
