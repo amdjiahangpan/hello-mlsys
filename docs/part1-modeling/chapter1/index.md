@@ -11,7 +11,7 @@ description: "Hello MLSys · 第 1 章 模拟器估算、Roofline 与瓶颈 · R
 
 ## 本章导读
 
-> 本章建立性能预测的第一层直觉：一个算子在给定硬件上的理论上限是多少，瓶颈落在计算还是访存。全书运转在两个飞轮上：**快飞轮**是解析模拟器——便宜、毫秒级、能穷举配置空间，但输出是"解析估计，不是测量"，不一定准；**慢飞轮**是真机——昂贵、慢、资源有限，但它是裁决快飞轮预测、提供校准的地方。书的价值不在任何一个飞轮里，而在两者之间的**对账**：预测先留痕，只测信息量最大的少数点，残差归因到机制。本章是这两个飞轮的第一圈——nominal Roofline 模拟器（快）+ 9070 XT 上卡锚定（慢，不拟合）；"快飞轮不准"不是缺陷，量化并归因这些差距本身就是教学内容（§1.4 的 14 个锚定点）。读完后，你应该能先用模拟器给出预测，再带着预测去看真机数据。
+> 本章建立性能预测的第一层直觉：一个算子在给定硬件上的理论上限是多少，瓶颈落在计算还是访存。全书运转在两个飞轮上：**快飞轮**是解析模拟器——便宜、毫秒级、能穷举配置空间，但输出是"解析估计，不是测量"，不一定准（快飞轮由两个模拟器构成——广泛使用的参考模拟器 mlsysim 与自研的 msys-simulator，分工见本章"两个模拟器"一节）；**慢飞轮**是真机——昂贵、慢、资源有限，但它是裁决快飞轮预测、提供校准的地方。书的价值不在任何一个飞轮里，而在两者之间的**对账**：预测先留痕，只测信息量最大的少数点，残差归因到机制。本章是这两个飞轮的第一圈——nominal Roofline 模拟器（快）+ 9070 XT 上卡锚定（慢，不拟合）；"快飞轮不准"不是缺陷，量化并归因这些差距本身就是教学内容（§1.4 的 14 个锚定点）。读完后，你应该能先用模拟器给出预测，再带着预测去看真机数据。
 
 ## 教学目标
 
@@ -19,6 +19,19 @@ description: "Hello MLSys · 第 1 章 模拟器估算、Roofline 与瓶颈 · R
 - 能计算算子的算术强度，判断它是 Compute-bound 还是 Memory-bound；
 - 能用模拟器预测矩阵乘、LayerNorm、FlashAttention 在目标卡上的瓶颈类型与时间量级；
 - 能识别"看起来像 Compute-bound、实际受带宽限制"的算子，并解释直觉错在哪里。
+
+## 两个模拟器：参考模拟器与自研模拟器
+
+全书的"快飞轮"由两个模拟器支撑，角色不同——先分清再展开（§1.4 调用的"模拟器"即其中自研的那个）：
+
+- **MLSys·im（mlsysim）—— 广泛使用的参考模拟器**。来自 Harvard CS249r 教材 [mlsysbook.ai](https://mlsysbook.ai)（Vijay Janapa Reddi 等，MIT Press，CC BY-NC-SA 4.0）配套的现成系统建模模拟器：roofline、372 个公式、102 份硬件参数档案；其 "The Math" 给出单步解析式 `T = max(compute, memory) + Dispatch_Tax` 的完整推导与效率 η 的典型范围。它是**广泛使用**的参考实现——本课程直接借它的方法与公式做 Roofline 解析层（§1.1 的 max 形式、§1.2 的计数口径、§1.3 的组件合成都从它的公式出发），并把它作为**参考模拟器**：学生手算与自研模拟器的输出都拿它对照，作为"解析层对不对"的第三方标尺。
+- **mlsys-simulator —— 本课程自研的确定性 CPU 服务模拟器**。[私有仓库](https://github.com/eyuansu62/mlsys-simulator)、许可证待定、未发布 PyPI；核心无必需第三方运行依赖，**不执行真实 GPU 张量**，用确定性模型在 CPU 上推进服务过程。建模：请求到达、continuous batching、KV 内存压力、抢占与重算、TP/PP 切分（microbatch / stage 独立推进）、多副本路由与负载均衡、Prefix Cache、Chunked Prefill、混合 prefill/decode batching、可选 CPU KV swap；输出逐请求时间线、逐 rank 显存账本与服务指标（TTFT/TPOT/SLA）。其解析层与 mlsysim 同构——per-macro 的 FLOPs / HBM Bytes / launch 计数走同一套 Roofline 口径，§1.4 的 `simulate` / `predict` 与六元组契约调的就是它。
+
+mlsys-simulator 的实验按**六元组契约**组织：`workload / infra / strategy / calibration / evaluation / execution`，其中 `calibration` 必须是显式参数（不得隐式）——这是全书"预测先留痕"纪律在接口层的落实。CLI 入口：`mlsys-sim simulate`（完整服务仿真）与 `mlsys-sim predict`（shape 分析：各 stage 成本、TP/P2P 通信、显存可行性、batch 上限；不含到达与排队，会显式报 `SHAPE_ANALYSIS_HAS_NO_ARRIVALS_OR_QUEUEING`），另有 `calibrate` / `compare` / `validate`。一次运行落盘 `manifest.json / result.json / requests.jsonl / events.jsonl / logs.txt` 五个产物（§1.4"模拟器接口与产物"的清单）；单位约定 ms、bytes、十进制 GB/s、TFLOP/s。
+
+**v1.15 更新（2026-11-06）：量化权重/KV 存储。** 引入"声明式有效字节宽度"契约：`weight_bytes` / `kv_bytes` / `activation_bytes` 由用户显式声明（正数、≤ 8），例如 FP8/INT8 = 1.0、INT4/FP4 = 0.5，以及带 block/scale 元数据的 GPTQ-128 ≈ 0.515625、NVFP4 ≈ 0.5625、MXFP4 ≈ 0.53125（元数据由用户声明，绝不从标签推断）；字节账用精确 ceiling 算术，小数宽度不会低估物理字节。反量化开销显式建模，三档 `weight_dequant`：`none`（不建模）、`fused`（反量化 FLOPs 计入 GEMM）、`materialized`（单独一遍 `params × (weight_bytes + 2×activation_bytes)`，每层一次 launch，仅对 packed 存储有效）；`CalibrationSpec.dequant_flops_per_weight`（默认 1.0）控制强度，KV 反量化在 attention macro 内 on-the-fly 融合。dequant 模式进入 Profile 身份——量化实验不能复用非量化的 Profile。详见其 `docs/quantization.md`。这一更新让**第 4 章的精度实验**在模拟器侧有了对应能力（字节账 + 反量化开销），但注意下面的边界。
+
+**边界（务必声明）**：mlsys-simulator **不做精度/质量建模**——量化只建字节账与反量化开销，不预测 PPL 或任何质量指标（精度只能真机/真模型裁决，第 4 章）；无 NVMe swap（仅可选 CPU KV swap）；真机 Profile 采集当前仅覆盖 BF16 域（live 捕获仍拒绝量化模型）；现有覆盖率不代表通用硬件准确率。因此它的输出永远是"确定性模型下的解析/模拟估计"，不是测量；与真机的对账飞轮自第 2 章起。
 
 ## 1.1 Roofline 模型
 
@@ -421,7 +434,7 @@ step 级再输出 t_step（= Σ t_ms + T_fixed 口径）与整体 FLOPs/Bytes/AI
 
 ### 模拟器接口与产物
 
-按第 0 章 §0.4 六元组契约调用（calibration 显式传参，不得隐式）：
+本节接口属于自研模拟器 msys-simulator（两个模拟器的角色与分工见本章"两个模拟器"一节）。按第 0 章 §0.4 六元组契约调用（calibration 显式传参，不得隐式）：
 
 ```
 simulate(workload, infra, strategy, calibration="nominal", evaluation, execution)
@@ -485,13 +498,14 @@ predict_decode_step(batch_size=B, context_lengths=[1024]*B, model_spec, device, 
 - **nominal（η=1）是下界不是预言**：解析估计的可靠性排序——瓶颈判定（binding constraint）> 交叉点位置（crossover）> 敏感度排序 > 单点数值；单点时间典型偏离真实 1.5–2×，§2 用真机拟合 η。
 - **phase 不对称**：同一模型 decode 全 memory-bound、prefill S≥512 全 compute-bound——PD 分离（第 9 章）的屋顶线动机；batching 在 ctx 较长时成本被 KV 扫描接管（算例 B 每请求吞吐 480→206 tok/s）。
 - **两个直觉陷阱**：decode GEMM B=1 数着全部 FLOPs 却 AI≈1（纯 memory-bound）；naive attention S² FLOPs 不小却被 S² 中间矩阵访存推回 memory 斜坡。共同错误：数了 FLOPs，没数字节复用。
-- **双飞轮（全书的固定学习循环）**：快飞轮 = 解析模拟器（本章 nominal Roofline），慢飞轮 = 真机（本章 9070 XT 上卡锚定，第 2 章起 η 校准）。快飞轮的输出永远是"假设 / 下界"，必须带口径与误差预算，不能裸当预测；慢飞轮贵且慢，只测信息量最大的少数点——钱花在哪由快飞轮决定；慢飞轮的测量回流成校准（第 2 章的 η）与残差归因（§1.4 锚定表：kernel 效率 / 软件墙 / 口径差 / launch 开销）。第 2 章起每章的对账表就是飞轮的一圈：快飞轮的误差预算逐章收紧，归因逐章变细。
+- **双飞轮（全书的固定学习循环）**：快飞轮 = 解析模拟器（本章 nominal Roofline；两个模拟器的角色见"两个模拟器"一节），慢飞轮 = 真机（本章 9070 XT 上卡锚定，第 2 章起 η 校准）。快飞轮的输出永远是"假设 / 下界"，必须带口径与误差预算，不能裸当预测；慢飞轮贵且慢，只测信息量最大的少数点——钱花在哪由快飞轮决定；慢飞轮的测量回流成校准（第 2 章的 η）与残差归因（§1.4 锚定表：kernel 效率 / 软件墙 / 口径差 / launch 开销）。第 2 章起每章的对账表就是飞轮的一圈：快飞轮的误差预算逐章收紧，归因逐章变细。
 - **上卡锚定（9070 XT，eager 协议）**：14 个实测点全部实测 ≥ 预测（下界语义成立）；matmul 4096³ 达矩阵峰值 67%（η_gemm 的量级）、LayerNorm 为名义带宽 48%、fused/naive attention = 9.4×（CMU A100 公开 5.7×）；全模型 decode 单步 wall ≈ T_launch（1591 kernels × ~19 μs CPU dispatch，GPU 饥饿至 ~42% busy）——T_fixed 不是零头，是 CUDA Graphs / compile 的直接动机（第 2 章起），且第 2 章 η 校准应对去除 T_launch 后的 GPU 侧时间。
 - **交付**：`code/part1-modeling/chapter1/` 下 18 个配置点的 per-component 预测（含 prediction_id + stored_at，先于第 2 章测量）+ 两张 Roofline 拐点图 + 手算 vs 模拟器一致性记录 + 上卡锚定实测（14 点，`results/*.json`，协议 Ch0 §0.3）+ 4 张中文配图（`figs/make_figs.py`）+ launch 诊断（`diag_launch.py`）。
 
 ## 延伸阅读
 
 - **mlsysbook.ai（Harvard CS249r 教材）**：Vol I "System Paradigms" 章（Roofline 形式化、ridge/machine balance point、ResNet-50/A100 b=1 贴着拐点算例、"bandwidth-bound vs 显存不足"命名区分）；[mlsysim 文档 "The Math"](https://mlsysbook.ai)（T = max(...) + Dispatch_Tax 的完整推导与 η 典型范围）。
+- **mlsys-simulator（本课程自研模拟器）**：[私有仓库](https://github.com/eyuansu62/mlsys-simulator)——确定性 CPU LLM 服务模拟器（continuous batching / KV 内存压力 / TP·PP / Prefix Cache / Chunked Prefill / 多副本路由），v1.15 起支持声明式量化权重/KV 存储与反量化开销建模（`docs/quantization.md`）；边界：不做精度建模、无 NVMe swap、真机采集仅 BF16 域。
 - **CMU 15-442/15-642（msyscourse.org）**：Week 5 Transformers/Attention slides（FlashAttention 在 A100 上的 FLOPs/访存/时间对照表——本章任务 2 的公开数据来源）；Week 9 LLM Serving slides（prefill/decode timeline、static batching 问题、continuous batching、PagedAttention）。
 - Williams, Waterman & Patterson, *"Roofline: An Insightful Visual Performance Model for Multicore Architectures,"* Communications of the ACM, 2009（Roofline 原始论文）。
 - Dao et al., *"FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness,"* 2022（tiling + recomputation 的 IO 复杂度分析）。
