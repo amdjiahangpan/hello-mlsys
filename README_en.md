@@ -238,11 +238,11 @@ hello-mlsys/
 
 ### Core Contributors
 
-- Yao Lu - Faculty Advisor (Assistant Professor, School of Computing, National University of Singapore)
+- Yao Lu - Faculty Advisor & Project Lead (Assistant Professor, School of Computing, National University of Singapore)
 - yuzhou - Project Lead (PhD student, ShanghaiTech University)
-- [Jiahang Pan - Project Lead](https://github.com/amdjiahangpan) (Software Engineer, AMD)
-- [Weihong Liu - Project Member](https://github.com/Weihong-Liu) (Datawhale member)
 - [Bowen Qin - Project Member](https://github.com/eyuansu62) (PhD student, National University of Singapore; builds and calibrates [mlsys-simulator](https://github.com/eyuansu62/mlsys-simulator))
+- [Jiahang Pan - Project Member](https://github.com/amdjiahangpan) (Software Engineer, AMD)
+- [Weihong Liu - Project Member](https://github.com/Weihong-Liu) (Datawhale member)
 - yanhui - Project Member (MComp student, National University of Singapore)
 - jiyan - Project Member (MComp student, National University of Singapore)
 
