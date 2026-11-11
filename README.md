@@ -1,89 +1,184 @@
-<h1 align="center"> Hello MLSys（⚠️ Alpha内测版） </h1>
+<div align="center">
+  <img src="./docs/public/images/head.png" alt="Hello MLSys：用模拟预测，用真机校准，让每个系统决策有据可依" width="100%">
+  <p><strong>先预测，再验证，让每个系统决策有据可依 🚀</strong></p>
+</div>
+
+<div align="center">
+
+*以模拟为预测 · 以实测为证据 · 以校准守诚实 · 以决策为终点*
+
+<p align="center">
+  <a href="./README_en.md"><img alt="English" src="https://img.shields.io/badge/English-d9d9d9"></a>
+  <a href="./README.md"><img alt="简体中文" src="https://img.shields.io/badge/简体中文-d9d9d9"></a>
+</p>
+
+</div>
+
+<div align="center">
+
+<a href="https://datawhalechina.github.io/hello-mlsys/"><img alt="在线阅读" src="https://img.shields.io/badge/%F0%9F%9A%80_%E5%9C%A8%E7%BA%BF%E9%98%85%E8%AF%BB-%E5%AE%8C%E6%95%B4%E6%95%99%E7%A8%8B-ed1941?logo=amd&logoColor=white&labelColor=1a1a1a" height="28"></a> | <a href="https://datawhalechina.github.io/hello-mlsys/curriculum/"><img alt="全书目录" src="https://img.shields.io/badge/%F0%9F%93%9A_%E5%85%A8%E4%B9%A6%E7%9B%AE%E5%BD%95-%E7%AB%A0%E8%8A%82%E5%AF%BC%E8%88%AA-ed1941?logo=amd&logoColor=white&labelColor=1a1a1a" height="28"></a> | <a href="https://github.com/datawhalechina/hello-rocm"><img alt="hello-rocm 环境与部署" src="https://img.shields.io/badge/%F0%9F%9B%A0%EF%B8%8F_hello--rocm-%E7%8E%AF%E5%A2%83%E4%B8%8E%E9%83%A8%E7%BD%B2-1a73e8?logo=github&logoColor=white&labelColor=1a1a1a" height="28"></a> | <a href="https://github.com/datawhalechina/hello-gpu"><img alt="hello-gpu 算子优化" src="https://img.shields.io/badge/%E2%9A%A1_hello--gpu-%E7%AE%97%E5%AD%90%E4%BC%98%E5%8C%96-1a73e8?logo=github&logoColor=white&labelColor=1a1a1a" height="28"></a>
+
+</div>
+
+<p align="center">
+  <img src="./docs/public/aup-logo.png" alt="AMD University Program" height="44">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./docs/public/rocm-logo.png" alt="AMD ROCm" height="44">
+</p>
 
 > [!CAUTION]
-> ⚠️ Alpha内测版本警告：此为早期内部构建版本，尚不完整且可能存在错误，欢迎大家提Issue反馈问题或建议。
+> ⚠️ Alpha 内测版本警告：此为早期内部构建版本，尚不完整且可能存在错误，欢迎大家提 Issue 反馈问题或建议。
 
-随着大模型推理逐渐走向真实服务，模型“能跑起来”之后，问题就变成了：这张卡能放下多长的上下文、撑住多少并发？P99 延迟的拐点在哪里？换一种量化、加一张卡、换一个推理框架，收益到底有多少，代价又是什么？这些问题牵涉**模型、硬件、配置、负载、SLA、质量、成本与能耗**之间的取舍，只靠反复试错，既慢又贵。
+&emsp;&emsp;随着大模型推理逐渐走向真实服务，模型“能跑起来”之后，问题就变成了：这张卡能放下多长的上下文、撑住多少并发？P99 延迟的拐点在哪里？换一种量化、加一张卡、换一个推理框架，收益到底有多少，代价又是什么？
 
-**hello-mlsys** 希望换一种学法：**先预测，再验证**。每个核心实验先用模拟器预测性能、容量或设计边界，再据此挑选少量有信息价值的配置上 AMD 真机实测；解释偏差、校准模型，并在未参与拟合的新配置上验证，最后做出设计决策。全书每一章都围绕同一个学习闭环展开：
+&emsp;&emsp;然而，**会部署模型并不等于会设计系统**。这些问题牵涉**模型、硬件、配置、负载、SLA、质量、成本与能耗**之间的取舍，只靠反复试错，既慢又贵；只看公式和论文，又不知道预测离真机有多远。市面上的资料大多停留在“某个框架怎么用”或“某个指标是什么”，很少把“先预测、再实测、解释误差、校准模型、最后做决策”的完整链路讲透。
+
+&emsp;&emsp;**hello-mlsys** 正是为这条路径而生。本教程以 **AMD Radeon RX 9070 XT** 为主线实验平台，每个核心实验先用模拟器预测性能、容量或设计边界，再据此挑选少量有信息价值的配置上 AMD 真机实测；解释偏差、校准模型，并在未参与拟合的新配置上验证，最后做出设计决策。全书每一章都围绕同一个学习闭环展开：
 
 > **定义场景与约束 → 运行模拟器并留存预测 → 选择实测点 → AMD 真机验证 → 解释误差与校准 → 留出验证 → 设计决策**
 
-本教程不是推理框架的使用手册，而是希望帮助读者建立 MLSys 的核心思维：**用模型做预测，用测量做证据，用校准守住诚实，用决策回答问题。**
+&emsp;&emsp;**本教程不是推理框架的使用手册，而是希望帮助读者建立 MLSys 的核心思维：用模型做预测，用测量做证据，用校准守住诚实，用决策回答问题。任何人都可以提出 issue 或是提交 PR，共同构建维护这个项目。**
 
-> hello-rocm 教你跑起来，hello-gpu 教你把算子做快，hello-mlsys 教你用模拟指导系统设计，并在 AMD 真机上验证和校准。环境安装与部署请参考 [hello-rocm](https://github.com/datawhalechina/hello-rocm)，算子与 kernel 调优请参考 [hello-gpu](https://github.com/datawhalechina/hello-gpu)，本教程不重复这两部分内容。
+> &emsp;&emsp;**hello-rocm 教你跑起来，hello-gpu 教你把算子做快，hello-mlsys 教你用模拟指导系统设计，并在 AMD 真机上验证和校准。** 环境安装与部署请参考 [hello-rocm](https://github.com/datawhalechina/hello-rocm)，算子与 kernel 调优请参考 [hello-gpu](https://github.com/datawhalechina/hello-gpu)，本教程不重复这两部分内容。
 
-本教程聚焦 **LLM 推理系统**；训练显存、算子调优与集群调度平台作为选读。
+> &emsp;&emsp;***学习建议：建议先读[第 0 章 协议与纸面演练](https://datawhalechina.github.io/hello-mlsys/part0-intro/chapter0/)，统一 token、GB/GiB、延迟等测量口径，并在纸面上把学习闭环走一遍；然后按「性能 → 校准 → 显存 → 量化 → 通信 → 并行 → 服务 → 框架」的顺序学习第 1 篇，再进入第 2 篇的综合设计。手边暂时没有 AMD 显卡，第 1 章的 Roofline 预测与第 3 章的显存账本都可以纯 CPU 完成，第 2 章还提供了一条 CPU 参照线作为预测入口。***
+
+### 最新动态
+
+- *2026.11.8:* **[教程站点](https://datawhalechina.github.io/hello-mlsys/)上线**：全书目录、章节导航、站内搜索与深浅色切换。
+
+### 已完成章节一览
+
+<p align="center">
+  <strong>✨ 每章一个完整闭环：预测留痕 · 真机实测 · 误差归因 · 留出验证 ✨</strong><br>
+  <em>主线平台 RX 9070 XT · 每章配套实验代码、原始测量记录与图表脚本</em><br>
+  <a href="https://datawhalechina.github.io/hello-mlsys/curriculum/">全书目录</a> · <a href="https://datawhalechina.github.io/hello-mlsys/part0-intro/chapter0/">第 0 章：统一测量协议</a>
+</p>
+
+<table align="center" border="0" cellspacing="0" cellpadding="0" style="border-collapse: collapse; border: none !important;">
+
+  <tr>
+    <td colspan="2" align="center" style="border: none !important;"><strong>协议 · 纸面演练</strong></td>
+  </tr>
+  <tr>
+    <td valign="top" width="50%" style="border: none !important;">
+      • 教程定位、硬件图谱与统一测量协议<br>
+      • 用模拟器输出填写一份字段完整的实验底稿<br>
+    </td>
+    <td valign="top" width="50%" style="border: none !important;">
+      • <a href="https://datawhalechina.github.io/hello-mlsys/part0-intro/chapter0/">第 0 章 教程正文</a><br>
+      • <a href="./docs/public/part0-intro/chapter0/experiment-draft.yaml">实验底稿模板</a><br>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center" style="border: none !important;"><strong>性能预测 · Roofline 与瓶颈</strong></td>
+  </tr>
+  <tr>
+    <td valign="top" width="50%" style="border: none !important;">
+      • 算术强度、Compute-bound / Memory-bound 判定<br>
+      • Prefill / Decode 宏观拆解与理论时间下界<br>
+    </td>
+    <td valign="top" width="50%" style="border: none !important;">
+      • <a href="https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter1/">第 1 章 教程正文</a><br>
+      • <a href="./code/part1-modeling/chapter1">实验代码与测量记录</a><br>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center" style="border: none !important;"><strong>真机校准 · Profile 与留出验证</strong></td>
+  </tr>
+  <tr>
+    <td valign="top" width="50%" style="border: none !important;">
+      • 真机准入检查、最小 Profile 与误差归因<br>
+      • 校准集拟合与留出验证、CPU 参照线<br>
+    </td>
+    <td valign="top" width="50%" style="border: none !important;">
+      • <a href="https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter2/">第 2 章 教程正文</a><br>
+      • <a href="./code/part1-modeling/chapter2">实验代码与测量记录</a><br>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center" style="border: none !important;"><strong>容量规划 · 权重与 KV Cache 显存账本</strong></td>
+  </tr>
+  <tr>
+    <td valign="top" width="50%" style="border: none !important;">
+      • 静态权重、每 token KV 与运行时开销三本账<br>
+      • 公式 / 分配器 / 设备三口径对账与可服务边界<br>
+    </td>
+    <td valign="top" width="50%" style="border: none !important;">
+      • <a href="https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter3/">第 3 章 教程正文</a><br>
+      • <a href="./code/part1-modeling/chapter3">实验代码与测量记录</a><br>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center" style="border: none !important;"><strong>量化选型 · 精度与误差预算</strong></td>
+  </tr>
+  <tr>
+    <td valign="top" width="50%" style="border: none !important;">
+      • 显存、解码速度、首 token 延迟与质量四个预算<br>
+      • 低比特为什么不一定更快：反量化开销与 kernel 归因<br>
+    </td>
+    <td valign="top" width="50%" style="border: none !important;">
+      • <a href="https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter4/">第 4 章 教程正文</a><br>
+      • <a href="./code/part1-modeling/chapter4">实验代码与测量记录</a><br>
+    </td>
+  </tr>
+</table>
+
+## 项目意义
+
+&emsp;&emsp;什么是 MLSys？
+
+> MLSys（Machine Learning Systems）研究如何把机器学习模型高效、可靠、经济地运行在真实硬件与真实负载上。它关心的不是单个算子有多快，而是整个系统在模型、硬件、配置、负载与服务目标之间如何取舍。
+
+&emsp;&emsp;模型越来越大，推理越来越贵，“跑得动”之后紧接着就是“撑得住、划得来”。容量规划、量化选型、并行切分、框架选择，每一个决定都会牵动显存、延迟、吞吐与成本。然而，大多数学习资料要么停留在部署教程，要么停留在论文公式：前者告诉你怎么跑，却不告诉你为什么这样配；后者给出模型，却不告诉你它离真机有多远。
+
+&emsp;&emsp;本项目选择 **AMD Radeon RX 9070 XT** 作为主线实验平台，集群设计章使用 **W7900D 48 GB 多卡**：消费级显卡让学生和小型实验室也能完成真机校准，而 Roofline、显存账本、α–β 通信模型与排队论在任何平台上都同样成立，换卡只换参数表。
+
+&emsp;&emsp;围绕这条主线，本教程坚持三个关键词：
+
+| 关键词 | 含义 | 你会怎么练 |
+| ---- | ---- | ---- |
+| **Simulator-Driven** | 先用模拟器预测，再决定测什么 | 预测先留痕，只测信息量最大的少数配置 |
+| **Calibration-Honest** | 用真机裁决预测，误差必须能解释 | 拟合校准系数，在未参与拟合的配置上做留出验证 |
+| **Decision-Oriented** | 每章都落到一个可量化的设计决策 | 显存可行域、量化方案、并行切分、SLA 容量、集群配置 |
+
+&emsp;&emsp;本教程聚焦 **LLM 推理系统**；训练显存、算子调优与集群调度平台作为选读，不在本书主线范围内。
+
+&emsp;&emsp;***我们希望让每一位学习者都能先算清楚、再测明白，用证据为每一个系统决策负责。***
 
 ## 项目受众
 
-- 会用 PyTorch 跑模型，希望理解系统性能从何而来的学生和工程师；
-- 想进入 MLSys / AI Infra / 推理优化方向，希望建立“预测 → 实测 → 校准”工程方法的学习者；
-- 需要为推理服务做容量规划、量化选型或框架选型，却缺少系统化判断依据的开发者；
-- 希望了解 AMD GPU / ROCm 生态下 LLM 推理系统设计的学习者。
+&emsp;&emsp;本项目适合以下学习者：
 
-> 你不需要有算子开发经验，但最好具备 Python、PyTorch、Linux 基础与英文文档阅读能力。
+* 会用 PyTorch 跑模型，希望理解系统性能从何而来的学生和工程师；
+* 想进入 MLSys / AI Infra / 推理优化方向，希望建立“预测 → 实测 → 校准”工程方法的学习者；
+* 需要为推理服务做容量规划、量化选型或框架选型，却缺少系统化判断依据的开发者；
+* 希望了解 AMD GPU / ROCm 生态下 LLM 推理系统设计的学习者。
 
-## 在线阅读
+> &emsp;&emsp;你不需要有算子开发经验，但最好具备 Python、PyTorch、Linux 基础与英文文档阅读能力。
 
-🚧 待上线
+## 项目规划及进展
 
-## 本地预览与构建
+&emsp;&emsp;全书沿着「**建立口径 → 建模与校准 → 与 AI 一起设计 → 选修拓展**」的主线组织，共 4 篇正文与 6 个附录。每一章都是一个完整的“预测 → 实测 → 校准 → 决策”闭环，后面的章节会复用前面校准过的模型，建议按顺序学习。
 
-站点使用 VitePress 默认主题，直接把 `docs/` 中的 Markdown 渲染为教程页面，提供全书目录、章节导航、站内搜索与深浅色切换。
+### 项目结构
 
-使用 Node.js 22.12 或更新版本，在仓库根目录运行：
-
-```bash
-npm install
-npm run docs:dev
 ```
-
-打开终端显示的本地地址（默认 `http://localhost:5173/hello-mlsys/`）。修改 Markdown 后，页面会自动刷新。
-
-构建与检查：
-
-```bash
-npm run docs:check-outline
-npm run docs:build
-npm run docs:preview
-```
-
-静态页面生成到 `docs/.vitepress/dist/`。`docs/.vitepress/outline.mjs` 是章节信息的统一入口，`docs:sync-outline` 会同步 README、全书目录页与章节元数据，保留已有正文。`docs/curriculum/index.md` 是生成文件，请通过大纲修改。
-
-### GitHub 自动构建与发布
-
-仓库的 `.github/workflows/deploy.yml` 已配置自动流程：
-
-- 向 `main` 推送提交（包括合并 PR）：自动安装依赖、构建并发布到 GitHub Pages。
-- 向 `main` 提交 PR：检查站点能否构建，合并后再发布。
-- 在 Actions 中手动运行工作流：选择 `main` 可以重新构建并发布；其他分支只构建。
-
-首次发布需要**仓库管理员**在 Settings → Pages 中将 Build and deployment 的 Source 设为 **GitHub Actions**。如果该选项不可用，请管理员确认当前私有仓库的 Pages 使用权限与站点访问设置。
-
-管理员完成这一次设置、代码合并到 `main` 后，后续只需修改 Markdown、提交并推送，网页就会随工作流更新。发布状态可在 Actions 的 **Deploy VitePress site to Pages** 中查看，成功后的网址以部署结果为准。
-
-构建使用 Node.js 22 和 `npm ci`，请将 `package-lock.json` 一并提交；修改依赖时运行 `npm install` 更新锁文件。当前站点路径由 `docs/.vitepress/config.mts` 中的 `base: '/hello-mlsys/'` 配置。
-
-## 项目结构
-
-```text
 hello-mlsys/
 ├── docs/                      # VitePress 教程站点源文件
 │   ├── part0-intro/           # 第 0 篇：入门
 │   ├── part1-modeling/        # 第 1 篇：建模与校准
 │   ├── part2-ai-design/       # 第 2 篇：与 AI 一起设计
 │   ├── part3-electives/       # 第 3 篇：选修与案例库
-│   ├── appendix/              # 附录
+│   ├── appendix/              # 附录 A–F
+│   ├── curriculum/            # 全书目录（由大纲生成）
 │   └── .vitepress/            # 站点配置与全书大纲（outline.mjs）
-├── code/                      # 各章实验代码、配置与测量记录
+├── code/                      # 各章实验代码、测量记录与图表脚本
 ├── notebooks/                 # Notebook 动手学习
 └── scripts/                   # 环境配置、构建与检查脚本
 ```
 
 ## 目录
-
-> 章节由 `docs/.vitepress/outline.mjs` 统一维护，修改后运行 `npm run docs:sync-outline` 即可同步 README 目录、站点导航与章节骨架。
 
 | 章节名 | 简介 | 状态 |
 | ---- | ---- | ---- |
@@ -116,6 +211,13 @@ hello-mlsys/
 
 ### 核心贡献者
 
+- 陆遥-指导教师（新加坡国立大学计算机学院助理教授）
+- yuzhou-项目负责人（上海科技大学博士在读）
+- [潘嘉航-项目负责人](https://github.com/amdjiahangpan)（AMD 软件工程师）
+- [刘伟鸿-项目成员](https://github.com/Weihong-Liu)（Datawhale 成员）
+- yanhui-项目成员（新加坡国立大学 MComp 硕士）
+- jiyan-项目成员（新加坡国立大学 MComp 硕士）
+
 > 注：欢迎更多贡献者加入！
 
 ### 其他
@@ -124,19 +226,36 @@ hello-mlsys/
 - 特别感谢以下为教程做出贡献的同学！
 - 感谢 AMD University Program 对本项目的支持！
 
-<a href="https://github.com/amdjiahangpan/hello-mlsys/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=amdjiahangpan/hello-mlsys" alt="Hello MLSys 项目贡献者" />
-</a>
+<div align="center">
+  <a href="https://github.com/datawhalechina/hello-mlsys/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=datawhalechina/hello-mlsys" alt="Hello MLSys 项目贡献者" />
+  </a>
+</div>
 
 ## 参与贡献
 
-我们欢迎所有形式的贡献！无论是：
+&emsp;&emsp;我们欢迎所有形式的贡献！无论是：
 
-- 完善或新增教程章节
-- 修复错误与 Bug
-- 在其他 AMD GPU 上复跑实验、补充实测与校准数据
-- 提出建议与想法
+* 完善或新增教程章节
+* 修复错误与 Bug
+* 在其他 AMD GPU 上复跑实验、补充实测与校准数据
+* 提出建议与想法
+
+&emsp;&emsp;参与前请先阅读 **[贡献指南 CONTRIBUTING.md](./CONTRIBUTING.md)**，其中说明了内容放置位置、章节与实验记录规范、本地预览方式与 PR 流程。
+
+- 如果你发现了一些问题，可以提 Issue 进行反馈；
+- 如果你想参与贡献本项目，可以提 Pull Request，我们会尽快 review。
 
 ## LICENSE
 
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-lightgrey" /></a><br />本作品采用<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a>进行许可。
+
+---
+
+<div align="center">
+
+**让我们一起先预测、再验证，用证据设计每一个系统！** 💪
+
+Made with ❤️ by the hello-mlsys community
+
+</div>

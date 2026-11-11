@@ -71,8 +71,6 @@ function readmeDirectory() {
   const lines = [
     '## 目录',
     '',
-    '> 章节由 `docs/.vitepress/outline.mjs` 统一维护，修改后运行 `npm run docs:sync-outline` 即可同步 README 目录、站点导航与章节骨架。',
-    '',
     '| 章节名 | 简介 | 状态 |',
     '| ---- | ---- | ---- |',
   ]

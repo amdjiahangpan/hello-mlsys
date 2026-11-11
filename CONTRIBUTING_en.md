@@ -1,0 +1,148 @@
+# Contributing Guide
+
+Thank you for helping build **hello-mlsys**. This guide explains where content belongs, how to write chapters and measurement records, and how to preview locally and submit a pull request.
+
+The Chinese version is **[CONTRIBUTING.md](./CONTRIBUTING.md)**. The tutorial body is currently written in Chinese.
+
+## Repository Layout
+
+```text
+hello-mlsys/
+├── docs/                          # VitePress tutorial site sources
+│   ├── part0-intro/               # Part 0: Introduction
+│   ├── part1-modeling/            # Part 1: Modeling and Calibration
+│   ├── part2-ai-design/           # Part 2: Designing with AI
+│   ├── part3-electives/           # Part 3: Electives and Case Library
+│   ├── appendix/                  # Appendices A–F
+│   ├── curriculum/                # Full curriculum (generated, do not edit by hand)
+│   ├── public/                    # Static assets (header images, logos, downloadable templates)
+│   └── .vitepress/
+│       ├── outline.mjs            # Book outline: the single source of chapter metadata
+│       └── sync-outline.mjs       # Outline sync script
+├── code/                          # Per-chapter experiment code, measurement records, and plotting scripts, mirroring docs/
+├── notebooks/                     # Hands-on notebooks
+├── scripts/                       # Environment setup, build, and check scripts
+├── README.md / README_en.md       # Chinese and English project home pages
+└── CONTRIBUTING.md                # Contributing guide
+```
+
+## What We Welcome
+
+- **Chapter content**: completing or improving chapters so the "predict → measure → calibrate → decide" chain is clearer.
+- **Measurement data**: re-running existing experiments on other AMD GPUs and adding measurement records and calibration results.
+- **Fixes**: typos, broken links, outdated commands, formula or unit errors, images that fail to load, and so on.
+- **Discussion**: reporting reproduction results, hardware environments, and observed deviations in issues.
+
+For larger changes (new chapters, restructuring chapters, new experiments), please open an **issue** first to briefly describe the plan so maintainers can align it with the outline.
+
+## Where Content Belongs
+
+| Contribution | Location |
+| :--- | :--- |
+| Chapter text | `docs/<part>/<chapter>/index.md` |
+| Chapter figures | `docs/<part>/<chapter>/images/`, referenced as `./images/xxx.png` |
+| Experiment code | `code/<part>/<chapter>/` |
+| Raw measurement records | `code/<part>/<chapter>/results/`, with a device suffix in the file name, e.g. `cal_9070xt.json` |
+| Plotting scripts | `code/<part>/<chapter>/figs/make_figs.py`, reading data from `results/` to generate figures |
+| Templates for readers to download | `docs/public/<part>/<chapter>/` |
+| Chapter title, summary, status | `docs/.vitepress/outline.mjs` (see "Editing the Outline" below) |
+
+## Chapter Writing Conventions
+
+Each chapter is a complete "predict → measure → calibrate → decide" loop. Organize the text as follows (see the completed Chapters 1–4 for reference):
+
+1. **本章导读 (Overview)**: a short introduction to the question the chapter answers and what readers will be able to do.
+2. **教学目标 (Learning objectives)**: a checklist of verifiable skills.
+3. **Numbered sections** `N.1`, `N.2`, ...: first the model and formulas, then the simulator prediction, and finally real-hardware validation and error attribution.
+4. **实验设计 (Experiment design)**: inputs, steps, and outputs of the simulator experiment and the real-hardware experiment.
+5. **本章小结 (Summary)**: key conclusions and numbers.
+6. **延伸阅读 (Further reading)**: original papers, official documentation, and related chapters.
+
+The frontmatter and the top-level heading are maintained by the outline sync script; please do not edit them by hand.
+
+## Experiment and Measurement Conventions
+
+The core discipline of this tutorial is **record the prediction first, then measure**. When contributing experiment-related content:
+
+- **Predict before measuring**: write simulator predictions or hand calculations to disk before measuring, with a timestamp. Adjusting parameters after seeing the measurements is back-fitting, not validation.
+- **Split calibration and holdout sets in advance**: fit coefficients only on the calibration set, and use the holdout set only for checking.
+- **Follow the unified measurement protocol**: warm-up, repetitions, statistics, and units follow the [Chapter 0 measurement protocol](./docs/part0-intro/chapter0/index.md).
+- **Record the full environment**: GPU model, driver and ROCm versions, framework versions, precision, and random seed go into the measurement record.
+- **Label the source**: distinguish nominal values from measured effective values, and measured conclusions from simulated extrapolation, in both text and data.
+- **Commit the data**: every number cited in the text must be traceable to a raw record in `results/`; figures are generated by scripts in `figs/` and committed to the repository, never hot-linked.
+
+## Editing the Outline
+
+Chapter titles, summaries, status, and section skeletons are maintained in `docs/.vitepress/outline.mjs`. After editing it, run from the repository root:
+
+```bash
+npm run docs:sync-outline
+```
+
+This syncs:
+
+- the Contents table in `README.md`;
+- the curriculum page `docs/curriculum/index.md`;
+- each chapter's frontmatter and top-level heading (existing text is not overwritten);
+- skeleton files for new chapters (generated only when the file does not exist).
+
+Notes:
+
+- The Contents table in `README_en.md` is not synced automatically; update the matching rows by hand after editing the outline.
+- `npm run docs:sync-outline -- --write-stubs` **overwrites existing chapter text** with skeletons. It is for initialization only; do not use it day to day.
+
+## Local Preview and Checks
+
+Node.js 22.12 or later is required. From the repository root:
+
+```bash
+npm install
+npm run docs:dev
+```
+
+Open the local address shown in the terminal (by default `http://localhost:5173/hello-mlsys/`); pages refresh automatically when you edit Markdown.
+
+Before submitting, run:
+
+```bash
+npm run docs:check-outline   # check that the outline matches the README, curriculum page, and chapter metadata
+npm run docs:build           # check that the site builds
+```
+
+When changing dependencies, run `npm install` to update `package-lock.json` and commit it as well.
+
+## Opening an Issue
+
+- **Content errors**: give the page path, what is wrong, and the suggested fix; for numbers, explain your calculation or measurement.
+- **Reproduction results**: include GPU model, driver and ROCm versions, framework versions, the full command and raw output, and how your result differs from the text.
+- **Suggestions**: topics or experiments you would like to see; please link any references.
+
+## Submitting a Pull Request
+
+1. **Fork** the repository and create a feature branch from the latest `main` (e.g. `docs/ch3-typo`, `feat/ch5-alpha-beta`).
+2. **Keep each PR focused on one kind of change** (e.g. only typo fixes in one chapter, or only one new experiment) to make review easier.
+3. In the PR description, state:
+   - **Motivation**: what problem it solves or what it adds;
+   - **Summary of changes**: which files changed;
+   - **Verification**: whether you ran `docs:check-outline` and `docs:build`; for measurement data, the hardware and software environment.
+4. After the PR is merged into `main`, the site is built and published automatically.
+
+### PR Checklist
+
+- [ ] Ran `npm run docs:sync-outline` after changing chapter metadata, and updated `README_en.md` if needed
+- [ ] `npm run docs:check-outline` and `npm run docs:build` pass
+- [ ] Predictions were recorded before measurement, and calibration and holdout sets were not mixed
+- [ ] Numbers in the text are traceable to raw records in `results/`, with hardware and software versions noted
+- [ ] Images are committed to the repository, not hot-linked
+
+## Code of Conduct
+
+Please be friendly, respectful, and constructive, and iterate patiently on review feedback. We value reproducible, verifiable technical writing: conclusions need evidence, and evidence must be reproducible.
+
+## License
+
+Contributions to this repository are licensed under the repository **[LICENSE](./LICENSE)** (CC BY-NC-SA 4.0) by default. If you bring in third-party material, please state its source and license in the PR.
+
+---
+
+**Thank you again for your time and expertise.**

@@ -1,7 +1,7 @@
 // 全书大纲：站点导航、侧边栏、全书目录、章节骨架与 README 目录均由此文件生成。
 // 修改后运行 `npm run docs:sync-outline` 同步。
 
-export const repoUrl = 'https://github.com/amdjiahangpan/hello-mlsys'
+export const repoUrl = 'https://github.com/datawhalechina/hello-mlsys'
 
 export const parts = [
   {
