@@ -29,17 +29,19 @@
 > [!CAUTION]
 > ⚠️ Alpha 内测版本警告：此为早期内部构建版本，尚不完整且可能存在错误，欢迎大家提 Issue 反馈问题或建议。
 
+&emsp;&emsp;🎓 **和新加坡国立大学（NUS）的同学一起学 MLSys！** 本项目由 NUS 的同学参与共建，也会和更多 NUS 同学一起边学边做。欢迎你加入我们，在 AMD 硬件上把 LLM 推理系统从“能跑”学到“会设计”。
+
 &emsp;&emsp;随着大模型推理逐渐走向真实服务，模型“能跑起来”之后，问题就变成了：这张卡能放下多长的上下文、撑住多少并发？P99 延迟的拐点在哪里？换一种量化、加一张卡、换一个推理框架，收益到底有多少，代价又是什么？
 
 &emsp;&emsp;然而，**会部署模型并不等于会设计系统**。这些问题牵涉**模型、硬件、配置、负载、SLA、质量、成本与能耗**之间的取舍，只靠反复试错，既慢又贵；只看公式和论文，又不知道预测离真机有多远。市面上的资料大多停留在“某个框架怎么用”或“某个指标是什么”，很少把“先预测、再实测、解释误差、校准模型、最后做决策”的完整链路讲透。
 
-&emsp;&emsp;**hello-mlsys** 正是为这条路径而生。本教程以 **AMD Radeon RX 9070 XT** 为主线实验平台，每个核心实验先用模拟器预测性能、容量或设计边界，再据此挑选少量有信息价值的配置上 AMD 真机实测；解释偏差、校准模型，并在未参与拟合的新配置上验证，最后做出设计决策。全书每一章都围绕同一个学习闭环展开：
+&emsp;&emsp;**hello-mlsys** 正是为这条路径而生。本教程面向 AMD 系列硬件：从 **Radeon RX 9070 XT、RX 7900 XTX** 等桌面显卡，到 **Ryzen AI MAX+ 395** 等端侧设备，再到 **W7900D** 多卡集群，都可以作为实验平台。每个核心实验先用模拟器 **[mlsys-simulator](https://github.com/eyuansu62/mlsys-simulator)** 预测性能、容量或设计边界，再据此挑选少量有信息价值的配置上 AMD 真机实测；解释偏差、校准模型，并在未参与拟合的新配置上验证，最后做出设计决策。全书每一章都围绕同一个学习闭环展开：
 
 > **定义场景与约束 → 运行模拟器并留存预测 → 选择实测点 → AMD 真机验证 → 解释误差与校准 → 留出验证 → 设计决策**
 
 &emsp;&emsp;**本教程不是推理框架的使用手册，而是希望帮助读者建立 MLSys 的核心思维：用模型做预测，用测量做证据，用校准守住诚实，用决策回答问题。任何人都可以提出 issue 或是提交 PR，共同构建维护这个项目。**
 
-> &emsp;&emsp;**hello-rocm 教你跑起来，hello-gpu 教你把算子做快，hello-mlsys 教你用模拟指导系统设计，并在 AMD 真机上验证和校准。** 环境安装与部署请参考 [hello-rocm](https://github.com/datawhalechina/hello-rocm)，算子与 kernel 调优请参考 [hello-gpu](https://github.com/datawhalechina/hello-gpu)，本教程不重复这两部分内容。
+> &emsp;&emsp;**hello-rocm 教你跑起来，hello-gpu 教你把算子做快，hello-mlsys 教你使用仿真指导系统设计，并在 AMD 真机上验证和校准。** 环境安装与部署请参考 [hello-rocm](https://github.com/datawhalechina/hello-rocm)，算子与 kernel 调优请参考 [hello-gpu](https://github.com/datawhalechina/hello-gpu)，本教程不重复这两部分内容。
 
 > &emsp;&emsp;***学习建议：建议先读[第 0 章 协议与纸面演练](https://datawhalechina.github.io/hello-mlsys/part0-intro/chapter0/)，统一 token、GB/GiB、延迟等测量口径，并在纸面上把学习闭环走一遍；然后按「性能 → 校准 → 显存 → 量化 → 通信 → 并行 → 服务 → 框架」的顺序学习第 1 篇，再进入第 2 篇的综合设计。手边暂时没有 AMD 显卡，第 1 章的 Roofline 预测与第 3 章的显存账本都可以纯 CPU 完成，第 2 章还提供了一条 CPU 参照线作为预测入口。***
 
@@ -51,7 +53,7 @@
 
 <p align="center">
   <strong>✨ 每章一个完整闭环：预测留痕 · 真机实测 · 误差归因 · 留出验证 ✨</strong><br>
-  <em>主线平台 RX 9070 XT · 每章配套实验代码、原始测量记录与图表脚本</em><br>
+  <em>支持 RX 9070 XT / RX 7900 XTX / Ryzen AI MAX+ 395 等 AMD 硬件 · 每章配套实验代码、原始测量记录与图表脚本</em><br>
   <a href="https://datawhalechina.github.io/hello-mlsys/curriculum/">全书目录</a> · <a href="https://datawhalechina.github.io/hello-mlsys/part0-intro/chapter0/">第 0 章：统一测量协议</a>
 </p>
 
@@ -132,7 +134,7 @@
 
 &emsp;&emsp;模型越来越大，推理越来越贵，“跑得动”之后紧接着就是“撑得住、划得来”。容量规划、量化选型、并行切分、框架选择，每一个决定都会牵动显存、延迟、吞吐与成本。然而，大多数学习资料要么停留在部署教程，要么停留在论文公式：前者告诉你怎么跑，却不告诉你为什么这样配；后者给出模型，却不告诉你它离真机有多远。
 
-&emsp;&emsp;本项目选择 **AMD Radeon RX 9070 XT** 作为主线实验平台，集群设计章使用 **W7900D 48 GB 多卡**：消费级显卡让学生和小型实验室也能完成真机校准，而 Roofline、显存账本、α–β 通信模型与排队论在任何平台上都同样成立，换卡只换参数表。
+&emsp;&emsp;本项目覆盖 AMD 的多类硬件：**Radeon RX 9070 XT、RX 7900 XTX** 等桌面显卡价格亲民，学生和小型实验室也能完成真机校准；**Ryzen AI MAX+ 395** 等端侧设备把大容量统一内存带到了个人电脑上，适合端侧部署与资源受限场景；集群设计章则使用 **W7900D 48 GB 多卡**。Roofline、显存账本、α–β 通信模型与排队论在任何平台上都同样成立，换硬件只需换参数表。
 
 &emsp;&emsp;围绕这条主线，本教程坚持三个关键词：
 
@@ -160,6 +162,27 @@
 ## 项目规划及进展
 
 &emsp;&emsp;全书沿着「**建立口径 → 建模与校准 → 与 AI 一起设计 → 选修拓展**」的主线组织，共 4 篇正文与 6 个附录。每一章都是一个完整的“预测 → 实测 → 校准 → 决策”闭环，后面的章节会复用前面校准过的模型，建议按顺序学习。
+
+### 章节与实验覆盖
+
+> ✅ 表示该章包含对应平台上的实验，🚧 表示该平台正在适配中。
+
+| 篇 / 章 | 核心实验 / 主题 | 模拟器 | RX 9070 XT | W7900D | Ryzen AI MAX+ 395 | 状态 |
+| ---- | ---- | :----: | :----: | :----: | :----: | :----: |
+| [Part 0 入门](https://datawhalechina.github.io/hello-mlsys/part0-intro/chapter0/) | 定位、硬件图谱、统一测量协议、模拟器工具链 | ✅ | | | | 🚧 |
+| [Ch 1](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter1/) | 使用模拟器估算时间、Roofline 与瓶颈 | ✅ | | | | 🚧 |
+| [Ch 2](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter2/) | 第一次跑通 Profile，并使用实际样例校准 | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 3](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter3/) | 显存占用估算：模型权重与 KV Cache | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 4](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter4/) | 精度、量化方法与误差预算 | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 5](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter5/) | 通信代价模型与 Scale-in / Scale-up | ✅ | | | | 🚧 |
+| [Ch 6](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter6/) | 模型并行策略与显存 / 算力拆解 | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 7](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter7/) | 服务、排队与 SLA，负载生成与压测 | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 8](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter8/) | 推理框架的系统取舍、Profile 方式与性能分析 | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 9.1](https://datawhalechina.github.io/hello-mlsys/part2-ai-design/chapter9-1/) | 与 AI 一起实战：端侧部署助手 | | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 9.2](https://datawhalechina.github.io/hello-mlsys/part2-ai-design/chapter9-2/) | 与 AI 一起实战：单机服务满足 SLA | | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 9.3](https://datawhalechina.github.io/hello-mlsys/part2-ai-design/chapter9-3/) | 与 AI 一起实战：多卡长上下文、多 Subagent 请求处理 | ✅ | | ✅ | | 🚧 |
+| [Part 3](https://datawhalechina.github.io/hello-mlsys/part3-electives/) | 选修与案例库：优先选修实验与扩展案例卡 | | ✅ | ✅ | 🚧 | 🚧 |
+| [附录](https://datawhalechina.github.io/hello-mlsys/curriculum/) | 硬件参数、模型卡、术语表、参考资源、社区共建、常见失败模式与排查清单 | | | | | 🚧 |
 
 ### 项目结构
 
@@ -214,6 +237,7 @@ hello-mlsys/
 - 陆遥-指导教师（新加坡国立大学计算机学院助理教授）
 - yuzhou-项目负责人（上海科技大学博士在读）
 - [潘嘉航-项目负责人](https://github.com/amdjiahangpan)（AMD 软件工程师）
+- [秦博文-项目成员](https://github.com/eyuansu62)（新加坡国立大学博士在读，[mlsys-simulator](https://github.com/eyuansu62/mlsys-simulator) 模拟器搭建与校准）
 - [刘伟鸿-项目成员](https://github.com/Weihong-Liu)（Datawhale 成员）
 - yanhui-项目成员（新加坡国立大学 MComp 硕士）
 - jiyan-项目成员（新加坡国立大学 MComp 硕士）

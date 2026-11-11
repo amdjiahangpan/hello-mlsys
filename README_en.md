@@ -31,17 +31,19 @@
 >
 > The tutorial body is currently written in Chinese; this English README gives an overview of the project.
 
+&emsp;&emsp;🎓 **Learn MLSys together with students at the National University of Singapore (NUS)!** This project is co-built by NUS students, who are learning it together with more of their classmates. Join us and take LLM inference systems on AMD hardware from "it runs" to "I can design it".
+
 &emsp;&emsp;As LLM inference moves into real services, getting a model to run is only the first step. The next questions are harder: How long a context fits on this card, and how many concurrent requests can it sustain? Where does P99 latency start to bend upward? If you switch quantization, add a GPU, or change inference frameworks, how much do you actually gain, and what does it cost?
 
 &emsp;&emsp;However, **knowing how to deploy a model is not the same as knowing how to design a system**. These questions involve trade-offs among **model, hardware, configuration, workload, SLA, quality, cost, and energy**. Trial and error is slow and expensive; formulas and papers alone do not tell you how far a prediction is from real hardware. Most learning material stops at "how to use framework X" or "what metric Y means", and rarely walks through the full chain of predicting, measuring, explaining the error, calibrating the model, and finally making a decision.
 
-&emsp;&emsp;**hello-mlsys** is built for exactly this path. Using the **AMD Radeon RX 9070 XT** as the main experimental platform, every core experiment first uses a simulator to predict performance, capacity, or design boundaries, then picks a small number of informative configurations to measure on real AMD hardware. You explain the deviations, calibrate the model, validate it on new configurations that were not used for fitting, and then make a design decision. Every chapter follows the same learning loop:
+&emsp;&emsp;**hello-mlsys** is built for exactly this path. It targets the AMD hardware family: desktop GPUs such as the **Radeon RX 9070 XT and RX 7900 XTX**, edge devices such as the **Ryzen AI MAX+ 395**, and multi-GPU **W7900D** clusters can all serve as experimental platforms. Every core experiment first uses the **[mlsys-simulator](https://github.com/eyuansu62/mlsys-simulator)** to predict performance, capacity, or design boundaries, then picks a small number of informative configurations to measure on real AMD hardware. You explain the deviations, calibrate the model, validate it on new configurations that were not used for fitting, and then make a design decision. Every chapter follows the same learning loop:
 
 > **Define scenario and constraints → Run the simulator and record the prediction → Choose measurement points → Validate on AMD hardware → Explain the error and calibrate → Holdout validation → Design decision**
 
 &emsp;&emsp;**This is not a user manual for inference frameworks. It aims to build the core MLSys mindset: use models to predict, use measurements as evidence, use calibration to stay honest, and use decisions to answer the question. Anyone is welcome to open an issue or submit a PR to help build and maintain this project.**
 
-> &emsp;&emsp;**hello-rocm gets you running, hello-gpu makes your kernels fast, and hello-mlsys teaches you to guide system design with simulation, then validate and calibrate it on real AMD hardware.** For environment setup and deployment, see [hello-rocm](https://github.com/datawhalechina/hello-rocm); for kernel tuning, see [hello-gpu](https://github.com/datawhalechina/hello-gpu). This tutorial does not repeat either topic.
+> &emsp;&emsp;**hello-rocm gets you running, hello-gpu makes your kernels fast, and hello-mlsys teaches you to use simulation to guide system design, then validate and calibrate it on real AMD hardware.** For environment setup and deployment, see [hello-rocm](https://github.com/datawhalechina/hello-rocm); for kernel tuning, see [hello-gpu](https://github.com/datawhalechina/hello-gpu). This tutorial does not repeat either topic.
 
 > &emsp;&emsp;***Study tip: start with [Chapter 0: Protocol and Paper Drill](https://datawhalechina.github.io/hello-mlsys/part0-intro/chapter0/) to align on measurement units such as tokens, GB/GiB, and latency, and walk through the learning loop on paper. Then study Part 1 in the order "performance → calibration → memory → quantization → communication → parallelism → serving → frameworks", and move on to the integrated design work in Part 2. No AMD GPU at hand? The Roofline predictions in Chapter 1 and the memory ledger in Chapter 3 can be done on CPU alone, and Chapter 2 provides a CPU reference line as an entry point for prediction.***
 
@@ -53,7 +55,7 @@
 
 <p align="center">
   <strong>✨ One complete loop per chapter: recorded prediction · real-hardware measurement · error attribution · holdout validation ✨</strong><br>
-  <em>Main platform: RX 9070 XT · every chapter ships with experiment code, raw measurement records, and plotting scripts</em><br>
+  <em>Supports AMD hardware such as RX 9070 XT / RX 7900 XTX / Ryzen AI MAX+ 395 · every chapter ships with experiment code, raw measurement records, and plotting scripts</em><br>
   <a href="https://datawhalechina.github.io/hello-mlsys/curriculum/">Curriculum</a> · <a href="https://datawhalechina.github.io/hello-mlsys/part0-intro/chapter0/">Chapter 0: Measurement Protocol</a>
 </p>
 
@@ -134,7 +136,7 @@
 
 &emsp;&emsp;Models keep growing and inference keeps getting more expensive. Once a model runs, the next questions are whether it can hold up under load and whether it is worth the cost. Capacity planning, quantization, parallel partitioning, and framework choice each affect memory, latency, throughput, and cost. Yet most material either stops at deployment tutorials or at paper formulas: the former tells you how to run something but not why it is configured that way; the latter gives you a model but not how far it is from real hardware.
 
-&emsp;&emsp;This project uses the **AMD Radeon RX 9070 XT** as its main experimental platform, and the cluster design chapter uses **multiple W7900D 48 GB GPUs**. A consumer GPU lets students and small labs do real-hardware calibration, while Roofline, memory ledgers, the α–β communication model, and queueing theory hold on any platform; switching hardware only means switching the parameter table.
+&emsp;&emsp;This project covers several kinds of AMD hardware: desktop GPUs such as the **Radeon RX 9070 XT and RX 7900 XTX** are affordable enough for students and small labs to do real-hardware calibration; edge devices such as the **Ryzen AI MAX+ 395** bring large unified memory to personal computers and suit on-device deployment and resource-constrained scenarios; and the cluster design chapter uses **multiple W7900D 48 GB GPUs**. Roofline, memory ledgers, the α–β communication model, and queueing theory hold on any platform; switching hardware only means switching the parameter table.
 
 &emsp;&emsp;Along this path, the tutorial sticks to three keywords:
 
@@ -162,6 +164,27 @@
 ## Roadmap and Progress
 
 &emsp;&emsp;The book is organized along the path "**establish measurement conventions → modeling and calibration → designing with AI → electives**", with 4 parts and 6 appendices. Every chapter is a complete "predict → measure → calibrate → decide" loop, and later chapters reuse models calibrated earlier, so reading in order is recommended.
+
+### Chapters and Experiment Coverage
+
+> ✅ means the chapter includes experiments on that platform; 🚧 means support for that platform is in progress.
+
+| Part / Chapter | Core experiment / topic | Simulator | RX 9070 XT | W7900D | Ryzen AI MAX+ 395 | Status |
+| ---- | ---- | :----: | :----: | :----: | :----: | :----: |
+| [Part 0 Introduction](https://datawhalechina.github.io/hello-mlsys/part0-intro/chapter0/) | Positioning, hardware map, unified measurement protocol, simulator toolchain | ✅ | | | | 🚧 |
+| [Ch 1](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter1/) | Estimating time with a simulator, Roofline, and bottlenecks | ✅ | | | | 🚧 |
+| [Ch 2](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter2/) | First end-to-end profile and calibration with real samples | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 3](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter3/) | Memory estimation: model weights and KV cache | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 4](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter4/) | Precision, quantization, and error budgets | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 5](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter5/) | Communication cost models and scale-in / scale-up | ✅ | | | | 🚧 |
+| [Ch 6](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter6/) | Model parallelism and memory / compute partitioning | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 7](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter7/) | Serving, queueing, and SLA; load generation and stress testing | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 8](https://datawhalechina.github.io/hello-mlsys/part1-modeling/chapter8/) | Inference framework trade-offs, profiling, and performance analysis | ✅ | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 9.1](https://datawhalechina.github.io/hello-mlsys/part2-ai-design/chapter9-1/) | Designing with AI: on-device deployment assistant | | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 9.2](https://datawhalechina.github.io/hello-mlsys/part2-ai-design/chapter9-2/) | Designing with AI: meeting an SLA on a single machine | | ✅ | ✅ | 🚧 | 🚧 |
+| [Ch 9.3](https://datawhalechina.github.io/hello-mlsys/part2-ai-design/chapter9-3/) | Designing with AI: multi-GPU long-context, multi-subagent request handling | ✅ | | ✅ | | 🚧 |
+| [Part 3](https://datawhalechina.github.io/hello-mlsys/part3-electives/) | Electives and case library: priority electives and extended case cards | | ✅ | ✅ | 🚧 | 🚧 |
+| [Appendices](https://datawhalechina.github.io/hello-mlsys/curriculum/) | Hardware parameters, model cards, glossary, references, community, common failure modes and troubleshooting | | | | | 🚧 |
 
 ### Repository Layout
 
@@ -219,6 +242,7 @@ hello-mlsys/
 - yuzhou - Project Lead (PhD student, ShanghaiTech University)
 - [Jiahang Pan - Project Lead](https://github.com/amdjiahangpan) (Software Engineer, AMD)
 - [Weihong Liu - Project Member](https://github.com/Weihong-Liu) (Datawhale member)
+- [Bowen Qin - Project Member](https://github.com/eyuansu62) (PhD student, National University of Singapore; builds and calibrates [mlsys-simulator](https://github.com/eyuansu62/mlsys-simulator))
 - yanhui - Project Member (MComp student, National University of Singapore)
 - jiyan - Project Member (MComp student, National University of Singapore)
 
